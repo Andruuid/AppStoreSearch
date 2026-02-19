@@ -62,6 +62,14 @@ function initSchema(db) {
       scraped_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS search_cache (
+      cache_key TEXT PRIMARY KEY,
+      results TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 }
 
 export function saveDb() {

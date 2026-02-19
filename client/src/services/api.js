@@ -48,3 +48,8 @@ export async function getTrending(params) {
   const { data } = await api.get('/opportunities/trending', { params });
   return data;
 }
+
+export async function getGems(params) {
+  const { data } = await api.get('/opportunities/gems', { params });
+  return data;
+}

@@ -69,6 +69,31 @@ export async function upsertDeveloper(dev) {
   saveDb();
 }
 
+export async function getCachedSearch(key) {
+  const db = await getDb();
+  const stmt = db.prepare('SELECT results, created_at FROM search_cache WHERE cache_key = ?');
+  stmt.bind([key]);
+  if (stmt.step()) {
+    const row = stmt.getAsObject();
+    stmt.free();
+    if (!isStale(row.created_at)) {
+      try { return JSON.parse(row.results); } catch { return null; }
+    }
+  } else {
+    stmt.free();
+  }
+  return null;
+}
+
+export async function setCachedSearch(key, results) {
+  const db = await getDb();
+  db.run(
+    `INSERT OR REPLACE INTO search_cache (cache_key, results, created_at) VALUES (?, ?, datetime('now'))`,
+    [key, JSON.stringify(results)]
+  );
+  saveDb();
+}
+
 export async function queryApps(filters = {}) {
   const db = await getDb();
   const conditions = [];

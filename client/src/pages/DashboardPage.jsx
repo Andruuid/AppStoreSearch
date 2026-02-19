@@ -1,5 +1,6 @@
 import { Box, Typography, Card, CardActionArea, CardContent, Grid } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import DiamondIcon from '@mui/icons-material/Diamond';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import PersonIcon from '@mui/icons-material/Person';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
@@ -49,6 +50,42 @@ export default function DashboardPage() {
         poorly-rated popular apps, and profitable indie niches.
       </Typography>
 
+      <Card
+        variant="outlined"
+        sx={{
+          mb: 4,
+          borderColor: '#f59e0b',
+          borderWidth: 2,
+          transition: 'box-shadow 0.2s',
+          '&:hover': { boxShadow: '0 0 0 2px #f59e0b' },
+        }}
+      >
+        <CardActionArea onClick={() => navigate('/gems')}>
+          <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 3, py: 3.5, px: 3 }}>
+            <Box sx={{
+              bgcolor: '#fef3c7', borderRadius: 3, p: 2,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <DiamondIcon sx={{ fontSize: 48, color: '#f59e0b' }} />
+            </Box>
+            <Box>
+              <Typography variant="h5" fontWeight={700} gutterBottom>
+                Gem Finder
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Find apps you can realistically rebuild yourself. Scores each app on developer size,
+                installs, monetization, and niche potential -- filtering out mega-brands and
+                billion-user platforms.
+              </Typography>
+            </Box>
+          </CardContent>
+        </CardActionArea>
+      </Card>
+
+      <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>
+        Other Discovery Strategies
+      </Typography>
+
       <Grid container spacing={2.5}>
         {STRATEGIES.map((s, i) => (
           <Grid size={{ xs: 12, sm: 6, md: 6, lg: 3 }} key={i}>
@@ -79,19 +116,13 @@ export default function DashboardPage() {
         ))}
       </Grid>
 
-      <Box sx={{ mt: 5 }}>
-        <Typography variant="h5" fontWeight={600} gutterBottom>
-          Quick Search
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Or jump straight to searching for specific apps and keywords.
-        </Typography>
+      <Box sx={{ mt: 4 }}>
         <Card
           variant="outlined"
           sx={{ cursor: 'pointer', '&:hover': { borderColor: 'primary.main' } }}
           onClick={() => navigate('/search')}
         >
-          <CardContent sx={{ textAlign: 'center', py: 3 }}>
+          <CardContent sx={{ textAlign: 'center', py: 2.5 }}>
             <Typography variant="h6" color="primary">
               Go to Search
             </Typography>

@@ -17,8 +17,14 @@ export function AppProvider({ children }) {
     category: '',
   });
 
+  const [gemState, setGemState] = useState({
+    results: [],
+    searched: false,
+    category: '',
+  });
+
   return (
-    <AppContext.Provider value={{ searchState, setSearchState, opportunityState, setOpportunityState }}>
+    <AppContext.Provider value={{ searchState, setSearchState, opportunityState, setOpportunityState, gemState, setGemState }}>
       {children}
     </AppContext.Provider>
   );

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { findLowRatedOpportunities, findSoloDevApps, findNicheProfitable, findTrending } from '../services/analyzer.js';
+import { findGems } from '../services/gemFinder.js';
 
 const router = Router();
 
@@ -60,6 +61,17 @@ router.get('/opportunities/trending', async (req, res) => {
   } catch (err) {
     console.error('Trending error:', err.message);
     res.status(500).json({ error: 'Failed to find trending apps', message: err.message });
+  }
+});
+
+router.get('/opportunities/gems', async (req, res) => {
+  try {
+    const { category } = req.query;
+    const results = await findGems({ category: category || undefined });
+    res.json(results);
+  } catch (err) {
+    console.error('Gem finder error:', err.message);
+    res.status(500).json({ error: 'Failed to find gems', message: err.message });
   }
 });
 

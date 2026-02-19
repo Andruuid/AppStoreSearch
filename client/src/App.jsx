@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import SearchPage from './pages/SearchPage';
 import OpportunitiesPage from './pages/OpportunitiesPage';
 import AppDetailPage from './pages/AppDetailPage';
+import GemFinderPage from './pages/GemFinderPage';
 
 const theme = createTheme({
   palette: {
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="/" element={<DashboardPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/opportunities" element={<OpportunitiesPage />} />
+            <Route path="/gems" element={<GemFinderPage />} />
             <Route path="/app/:appId" element={<AppDetailPage />} />
           </Route>
         </Routes>

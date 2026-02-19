@@ -1,5 +1,5 @@
 import { createRequire } from 'module';
-import { upsertApps, upsertDeveloper, getCachedDeveloper } from '../db/queries.js';
+import { upsertApps, upsertDeveloper, getCachedDeveloper, getCachedSearch, setCachedSearch } from '../db/queries.js';
 
 const require = createRequire(import.meta.url);
 const gplay = require('google-play-scraper');
@@ -8,6 +8,10 @@ export const CATEGORIES = gplay.category;
 export const COLLECTIONS = gplay.collection;
 
 export async function searchApps(opts = {}) {
+  const cacheKey = `search:${opts.term}:${opts.num || 30}:${opts.price || 'all'}:${opts.fullDetail ?? false}`;
+  const cached = await getCachedSearch(cacheKey);
+  if (cached) return cached;
+
   const results = await gplay.search({
     term: opts.term,
     num: opts.num || 30,
@@ -17,19 +21,28 @@ export async function searchApps(opts = {}) {
     country: opts.country || 'us',
   });
   await cacheResults(results);
+  await setCachedSearch(cacheKey, results);
   return results;
 }
 
 export async function listApps(opts = {}) {
+  const cat = opts.category || gplay.category.APPLICATION;
+  const col = opts.collection || gplay.collection.TOP_FREE;
+  const num = opts.num || 100;
+  const cacheKey = `list:${cat}:${col}:${num}`;
+  const cached = await getCachedSearch(cacheKey);
+  if (cached) return cached;
+
   const results = await gplay.list({
-    category: opts.category || gplay.category.APPLICATION,
-    collection: opts.collection || gplay.collection.TOP_FREE,
-    num: opts.num || 100,
+    category: cat,
+    collection: col,
+    num,
     fullDetail: false,
     lang: opts.lang || 'en',
     country: opts.country || 'us',
   });
   await cacheResults(results);
+  await setCachedSearch(cacheKey, results);
   return results;
 }
 
