@@ -12,7 +12,7 @@ export async function findLowRatedOpportunities(opts = {}) {
   for (const collection of collections) {
     try {
       const apps = await listApps({ category, collection, num: opts.num || 100 });
-      allApps.push(...apps);
+      if (Array.isArray(apps)) allApps.push(...apps);
     } catch {
       // Some category/collection combos may fail
     }
@@ -36,20 +36,26 @@ export async function findSoloDevApps(opts = {}) {
   const category = opts.category || CATEGORIES.APPLICATION;
   const minInstalls = opts.minInstalls || 10000;
 
-  const apps = await listApps({ category, collection: COLLECTIONS.TOP_FREE, num: opts.num || 100 });
+  let apps = [];
+  try {
+    apps = await listApps({ category, collection: COLLECTIONS.TOP_FREE, num: opts.num || 100 });
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(apps)) return [];
 
   const results = [];
   const checkedDevs = new Set();
 
   for (const app of apps) {
     if (!app.developerId || checkedDevs.has(app.developerId)) continue;
-    if (app.minInstalls < minInstalls) continue;
+    if ((app.minInstalls || 0) < minInstalls) continue;
     checkedDevs.add(app.developerId);
 
     try {
       const devInfo = await getDeveloperApps(app.developerId);
-      const appCount = devInfo.appCount || devInfo.app_count;
-      if (appCount <= 5) {
+      const appCount = devInfo?.appCount ?? devInfo?.app_count ?? 0;
+      if (appCount > 0 && appCount <= 5) {
         results.push({
           ...app,
           developerAppCount: appCount,
@@ -57,7 +63,7 @@ export async function findSoloDevApps(opts = {}) {
         });
       }
     } catch {
-      // Developer lookup can fail
+      // Developer lookup can fail, skip this dev
     }
   }
 
@@ -73,8 +79,10 @@ export async function findNicheProfitable(opts = {}) {
   ]);
 
   const appMap = new Map();
+  const safePaid = Array.isArray(paidApps) ? paidApps : [];
+  const safeGrossing = Array.isArray(grossingApps) ? grossingApps : [];
 
-  for (const app of [...paidApps, ...grossingApps]) {
+  for (const app of [...safePaid, ...safeGrossing]) {
     if (!appMap.has(app.appId)) {
       const reason = [];
       if (!app.free) reason.push(`Paid ($${app.price?.toFixed(2)})`);

@@ -20,6 +20,7 @@ export default function OpportunitiesPage() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [searched, setSearched] = useState(false);
   const [categories, setCategories] = useState([]);
   const [category, setCategory] = useState('');
 
@@ -33,7 +34,8 @@ export default function OpportunitiesPage() {
     try {
       const config = TAB_CONFIG[tab];
       const data = await config.fetcher({ category: category || undefined });
-      setResults(data);
+      setResults(Array.isArray(data) ? data : []);
+      setSearched(true);
     } catch (err) {
       setError(err.response?.data?.message || err.message);
     } finally {
@@ -46,6 +48,7 @@ export default function OpportunitiesPage() {
     setSearchParams({ tab: newTab });
     setResults([]);
     setError(null);
+    setSearched(false);
   };
 
   return (
@@ -107,9 +110,15 @@ export default function OpportunitiesPage() {
         </>
       )}
 
-      {!loading && !error && results.length === 0 && (
+      {!loading && !error && results.length === 0 && !searched && (
         <Alert severity="info">
           Select a category and click "Find Opportunities" to discover apps.
+        </Alert>
+      )}
+
+      {!loading && !error && results.length === 0 && searched && (
+        <Alert severity="warning">
+          No opportunities found for this category. Try a different category or strategy.
         </Alert>
       )}
     </Box>

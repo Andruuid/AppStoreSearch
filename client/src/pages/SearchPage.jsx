@@ -23,7 +23,7 @@ export default function SearchPage() {
     setError(null);
     try {
       const data = await searchApps({ term, category, price, num: 50 });
-      setResults(data);
+      setResults(Array.isArray(data) ? data : []);
       setSearched(true);
     } catch (err) {
       setError(err.response?.data?.message || err.message);
