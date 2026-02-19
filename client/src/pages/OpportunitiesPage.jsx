@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import AppCard from '../components/AppCard';
 import { getLowRated, getSoloDev, getNicheProfitable, getTrending, getCategories } from '../services/api';
+import { useAppContext } from '../context/AppContext';
 
 const TAB_CONFIG = [
   { label: 'Low Rated', fetcher: getLowRated, description: 'Popular apps with poor ratings -- ripe for a better alternative.' },
@@ -16,13 +17,18 @@ const TAB_CONFIG = [
 
 export default function OpportunitiesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [tab, setTab] = useState(parseInt(searchParams.get('tab')) || 0);
-  const [results, setResults] = useState([]);
+  const { opportunityState, setOpportunityState } = useAppContext();
+  const { results, searched, tab, category } = opportunityState;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [searched, setSearched] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [category, setCategory] = useState('');
+
+  const initialTab = parseInt(searchParams.get('tab'));
+  useEffect(() => {
+    if (!isNaN(initialTab) && initialTab !== tab) {
+      setOpportunityState(prev => ({ ...prev, tab: initialTab, results: [], searched: false }));
+    }
+  }, []);
 
   useEffect(() => {
     getCategories().then(setCategories).catch(() => {});
@@ -34,8 +40,11 @@ export default function OpportunitiesPage() {
     try {
       const config = TAB_CONFIG[tab];
       const data = await config.fetcher({ category: category || undefined });
-      setResults(Array.isArray(data) ? data : []);
-      setSearched(true);
+      setOpportunityState(prev => ({
+        ...prev,
+        results: Array.isArray(data) ? data : [],
+        searched: true,
+      }));
     } catch (err) {
       setError(err.response?.data?.message || err.message);
     } finally {
@@ -44,11 +53,13 @@ export default function OpportunitiesPage() {
   };
 
   const handleTabChange = (_, newTab) => {
-    setTab(newTab);
+    setOpportunityState(prev => ({ ...prev, tab: newTab, results: [], searched: false }));
     setSearchParams({ tab: newTab });
-    setResults([]);
     setError(null);
-    setSearched(false);
+  };
+
+  const handleCategoryChange = (e) => {
+    setOpportunityState(prev => ({ ...prev, category: e.target.value }));
   };
 
   return (
@@ -71,7 +82,7 @@ export default function OpportunitiesPage() {
         <TextField
           select
           value={category}
-          onChange={e => setCategory(e.target.value)}
+          onChange={handleCategoryChange}
           size="small"
           sx={{ minWidth: 200 }}
           label="Category"

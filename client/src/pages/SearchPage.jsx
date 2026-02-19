@@ -9,13 +9,13 @@ import FilterBar from '../components/FilterBar';
 import AppCard from '../components/AppCard';
 import AppListItem from '../components/AppListItem';
 import { searchApps } from '../services/api';
+import { useAppContext } from '../context/AppContext';
 
 export default function SearchPage() {
-  const [results, setResults] = useState([]);
+  const { searchState, setSearchState } = useAppContext();
+  const { results, searched, viewMode } = searchState;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [searched, setSearched] = useState(false);
-  const [viewMode, setViewMode] = useState('grid');
 
   const handleSearch = async ({ term, category, price }) => {
     if (!term) return;
@@ -23,13 +23,21 @@ export default function SearchPage() {
     setError(null);
     try {
       const data = await searchApps({ term, category, price, num: 50 });
-      setResults(Array.isArray(data) ? data : []);
-      setSearched(true);
+      setSearchState(prev => ({
+        ...prev,
+        results: Array.isArray(data) ? data : [],
+        searched: true,
+        filters: { term, category, price },
+      }));
     } catch (err) {
       setError(err.response?.data?.message || err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const setViewMode = (mode) => {
+    setSearchState(prev => ({ ...prev, viewMode: mode }));
   };
 
   return (
@@ -41,7 +49,7 @@ export default function SearchPage() {
         Search the Google Play Store for apps by keyword, category, and price.
       </Typography>
 
-      <FilterBar onSearch={handleSearch} />
+      <FilterBar onSearch={handleSearch} initialFilters={searchState.filters} />
 
       {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>

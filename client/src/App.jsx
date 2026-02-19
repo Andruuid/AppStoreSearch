@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
+import { AppProvider } from './context/AppContext';
 import Layout from './components/Layout';
 import DashboardPage from './pages/DashboardPage';
 import SearchPage from './pages/SearchPage';
@@ -34,6 +35,7 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <AppProvider>
       <BrowserRouter>
         <Routes>
           <Route element={<Layout />}>
@@ -44,6 +46,7 @@ export default function App() {
           </Route>
         </Routes>
       </BrowserRouter>
+      </AppProvider>
     </ThemeProvider>
   );
 }

@@ -5,11 +5,11 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import { getCategories } from '../services/api';
 
-export default function FilterBar({ onSearch, showSearch = true, showPrice = true }) {
+export default function FilterBar({ onSearch, showSearch = true, showPrice = true, initialFilters }) {
   const [categories, setCategories] = useState([]);
-  const [term, setTerm] = useState('');
-  const [category, setCategory] = useState('');
-  const [price, setPrice] = useState('all');
+  const [term, setTerm] = useState(initialFilters?.term || '');
+  const [category, setCategory] = useState(initialFilters?.category || '');
+  const [price, setPrice] = useState(initialFilters?.price || 'all');
 
   useEffect(() => {
     getCategories().then(setCategories).catch(() => {});
