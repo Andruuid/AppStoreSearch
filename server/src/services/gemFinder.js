@@ -105,7 +105,7 @@ function calculateGemScore(app, devAppCount) {
 
 const NICHE_CATEGORIES = Object.keys(CATEGORIES).filter(
   k => !COMPETITIVE_CATEGORIES.has(k) && k !== 'APPLICATION' && k !== 'ANDROID_WEAR' &&
-       k !== 'FAMILY' && k !== 'WATCH_FACE' && k !== 'LIBRARIES_AND_DEMO'
+       k !== 'WATCH_FACE' && k !== 'LIBRARIES_AND_DEMO'
 );
 
 export async function findGems(opts = {}) {
@@ -117,7 +117,7 @@ export async function findGems(opts = {}) {
 
   for (const cat of categoriesToSearch) {
     const keywords = getKeywordsForCategory(cat);
-    for (const keyword of keywords.slice(0, 3)) {
+    for (const keyword of keywords.slice(0, 5)) {
       try {
         const apps = await searchApps({ term: keyword, num: 15, fullDetail: true });
         if (Array.isArray(apps)) allApps.push(...apps);

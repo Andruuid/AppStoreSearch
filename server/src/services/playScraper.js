@@ -110,6 +110,17 @@ const CATEGORY_KEYWORDS = {
   PHOTOGRAPHY: ['photo editor', 'collage maker', 'camera filter', 'watermark app', 'photo organizer'],
   MEDICAL: ['pill reminder', 'symptom checker', 'blood pressure log', 'pregnancy tracker', 'first aid app'],
   HOUSE_AND_HOME: ['home budget', 'interior design', 'plant care', 'cleaning schedule', 'moving checklist'],
+  PARENTING: ['chore tracker', 'allowance app', 'chore chart', 'kids chores', 'family organizer', 'kids rewards', 'baby tracker', 'screen time kids'],
+  FAMILY: ['family chores', 'kids allowance', 'family calendar', 'chore app kids', 'family budget', 'parental control'],
+  DATING: ['dating app', 'matchmaker', 'relationship tracker', 'couples app', 'love language'],
+  EVENTS: ['event planner', 'countdown timer', 'invitation maker', 'rsvp app', 'party planner'],
+  BEAUTY: ['skincare routine', 'makeup tutorial', 'hair color', 'beauty tracker', 'nail art'],
+  ART_AND_DESIGN: ['drawing app', 'color palette', 'sketch pad', 'logo maker', 'font app'],
+  AUTO_AND_VEHICLES: ['car maintenance', 'fuel tracker', 'mileage log', 'obd scanner', 'parking app'],
+  BOOKS_AND_REFERENCE: ['book tracker', 'reading list', 'dictionary app', 'bible app', 'audiobook player'],
+  COMICS: ['comic reader', 'manga reader', 'webtoon app', 'comic creator'],
+  MAPS_AND_NAVIGATION: ['gps tracker', 'route planner', 'hiking map', 'speed camera alert'],
+  PERSONALIZATION: ['wallpaper app', 'icon pack', 'widget maker', 'ringtone maker', 'launcher app'],
 };
 
 export function getKeywordsForCategory(categoryId) {
