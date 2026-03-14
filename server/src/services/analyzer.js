@@ -28,12 +28,12 @@ export async function findSoloDevApps(opts = {}) {
 
   const keywords = getKeywordsForCategory(category);
   const allApps = [];
+  const MAX_PER_KEYWORD = 10;
 
-  // Search with niche keywords to find smaller, indie apps
-  for (const keyword of keywords.slice(0, 4)) {
+  for (const keyword of keywords.slice(0, 8)) {
     try {
-      const apps = await searchApps({ term: keyword, num: 20, fullDetail: true });
-      if (Array.isArray(apps)) allApps.push(...apps);
+      const apps = await searchApps({ term: keyword, num: 30, fullDetail: true });
+      if (Array.isArray(apps)) allApps.push(...apps.slice(0, MAX_PER_KEYWORD));
     } catch {
       // Some searches may fail
     }

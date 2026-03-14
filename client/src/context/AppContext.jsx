@@ -23,8 +23,15 @@ export function AppProvider({ children }) {
     category: '',
   });
 
+  const [crawlerState, setCrawlerState] = useState({
+    status: null,
+    gems: [],
+    threshold: 40,
+    budget: 200,
+  });
+
   return (
-    <AppContext.Provider value={{ searchState, setSearchState, opportunityState, setOpportunityState, gemState, setGemState }}>
+    <AppContext.Provider value={{ searchState, setSearchState, opportunityState, setOpportunityState, gemState, setGemState, crawlerState, setCrawlerState }}>
       {children}
     </AppContext.Provider>
   );

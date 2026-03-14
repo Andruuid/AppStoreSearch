@@ -70,6 +70,44 @@ function initSchema(db) {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS crawled_gems (
+      app_id TEXT PRIMARY KEY,
+      title TEXT,
+      developer TEXT,
+      developer_id TEXT,
+      icon TEXT,
+      score REAL,
+      min_installs INTEGER,
+      price REAL,
+      free INTEGER,
+      offers_iap INTEGER,
+      category TEXT,
+      url TEXT,
+      gem_score INTEGER,
+      gem_breakdown TEXT,
+      gem_reason TEXT,
+      developer_app_count INTEGER,
+      discovered_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS dismissed_apps (
+      app_id TEXT PRIMARY KEY,
+      dismissed_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS crawl_progress (
+      id TEXT PRIMARY KEY,
+      category TEXT,
+      keyword TEXT,
+      completed_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 }
 
 export function saveDb() {

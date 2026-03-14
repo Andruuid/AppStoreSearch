@@ -5,6 +5,7 @@ import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import PersonIcon from '@mui/icons-material/Person';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import WhatshotIcon from '@mui/icons-material/Whatshot';
+import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 
 const STRATEGIES = [
   {
@@ -76,6 +77,37 @@ export default function DashboardPage() {
                 Find apps you can realistically rebuild yourself. Scores each app on developer size,
                 installs, monetization, and niche potential -- filtering out mega-brands and
                 billion-user platforms.
+              </Typography>
+            </Box>
+          </CardContent>
+        </CardActionArea>
+      </Card>
+
+      <Card
+        variant="outlined"
+        sx={{
+          mb: 4,
+          borderColor: '#6366f1',
+          borderWidth: 2,
+          transition: 'box-shadow 0.2s',
+          '&:hover': { boxShadow: '0 0 0 2px #6366f1' },
+        }}
+      >
+        <CardActionArea onClick={() => navigate('/crawler')}>
+          <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 3, py: 3.5, px: 3 }}>
+            <Box sx={{
+              bgcolor: '#eef2ff', borderRadius: 3, p: 2,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <ManageSearchIcon sx={{ fontSize: 48, color: '#6366f1' }} />
+            </Box>
+            <Box>
+              <Typography variant="h5" fontWeight={700} gutterBottom>
+                Gem Crawler
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Systematically crawl every niche category for replicable apps. Runs in the background
+                with a request budget, pausing when exhausted. Come back later to continue.
               </Typography>
             </Box>
           </CardContent>

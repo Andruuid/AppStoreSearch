@@ -9,12 +9,14 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import SearchIcon from '@mui/icons-material/Search';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import DiamondIcon from '@mui/icons-material/Diamond';
+import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 
 const DRAWER_WIDTH = 240;
 
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/', icon: <DashboardIcon /> },
   { label: 'Gem Finder', path: '/gems', icon: <DiamondIcon /> },
+  { label: 'Gem Crawler', path: '/crawler', icon: <ManageSearchIcon /> },
   { label: 'Search', path: '/search', icon: <SearchIcon /> },
   { label: 'Opportunities', path: '/opportunities', icon: <TrendingUpIcon /> },
 ];

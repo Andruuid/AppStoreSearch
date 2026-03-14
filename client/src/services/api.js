@@ -53,3 +53,28 @@ export async function getGems(params) {
   const { data } = await api.get('/opportunities/gems', { params });
   return data;
 }
+
+export async function startCrawl(body) {
+  const { data } = await api.post('/crawler/start', body);
+  return data;
+}
+
+export async function getCrawlStatus() {
+  const { data } = await api.get('/crawler/status');
+  return data;
+}
+
+export async function getCrawledGems() {
+  const { data } = await api.get('/crawler/gems');
+  return data;
+}
+
+export async function dismissCrawledApp(appId) {
+  const { data } = await api.post(`/crawler/dismiss/${encodeURIComponent(appId)}`);
+  return data;
+}
+
+export async function resetCrawl() {
+  const { data } = await api.post('/crawler/reset');
+  return data;
+}
