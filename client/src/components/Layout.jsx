@@ -12,6 +12,7 @@ import DiamondIcon from '@mui/icons-material/Diamond';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 
 const DRAWER_WIDTH = 240;
+const APP_NAME = 'NicheFinder (v26314.1)';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/', icon: <DashboardIcon /> },
@@ -31,7 +32,7 @@ export default function Layout() {
   const drawerContent = (
     <Box sx={{ mt: 2 }}>
       <Typography variant="h6" sx={{ px: 2, mb: 2, fontWeight: 700 }}>
-        NicheFinder
+        {APP_NAME}
       </Typography>
       <List>
         {NAV_ITEMS.map(item => (
@@ -79,7 +80,7 @@ export default function Layout() {
               <IconButton edge="start" onClick={() => setMobileOpen(true)} sx={{ mr: 2 }}>
                 <MenuIcon />
               </IconButton>
-              <Typography variant="h6" fontWeight={700}>NicheFinder</Typography>
+              <Typography variant="h6" fontWeight={700}>{APP_NAME}</Typography>
             </Toolbar>
           </AppBar>
         )}
