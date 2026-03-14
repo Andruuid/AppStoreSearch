@@ -249,3 +249,49 @@ export async function isAlreadyCrawledGem(appId) {
   stmt.free();
   return exists;
 }
+
+// --- Favorites helpers ---
+
+export async function saveFavoriteApp(app) {
+  const db = await getDb();
+  db.run(`
+    INSERT OR REPLACE INTO favorite_apps
+      (app_id, title, developer, developer_id, icon, score, min_installs,
+       price, free, offers_iap, category, url, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+  `, [
+    app.appId, app.title ?? null, app.developer ?? null, app.developerId ?? null,
+    app.icon ?? null, app.score ?? null, app.minInstalls ?? null, app.price ?? null,
+    app.free ? 1 : 0, app.offersIAP ? 1 : 0, app.category || app.genre || null,
+    app.url ?? null,
+  ]);
+  saveDb();
+}
+
+export async function removeFavoriteApp(appId) {
+  const db = await getDb();
+  db.run('DELETE FROM favorite_apps WHERE app_id = ?', [appId]);
+  saveDb();
+}
+
+export async function listFavoriteApps() {
+  const db = await getDb();
+  const results = [];
+  const stmt = db.prepare('SELECT * FROM favorite_apps ORDER BY created_at DESC');
+  while (stmt.step()) {
+    results.push(stmt.getAsObject());
+  }
+  stmt.free();
+  return results;
+}
+
+export async function listFavoriteIds() {
+  const db = await getDb();
+  const ids = [];
+  const stmt = db.prepare('SELECT app_id FROM favorite_apps');
+  while (stmt.step()) {
+    ids.push(stmt.getAsObject().app_id);
+  }
+  stmt.free();
+  return ids;
+}

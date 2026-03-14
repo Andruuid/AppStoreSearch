@@ -8,6 +8,7 @@ import DiamondIcon from '@mui/icons-material/Diamond';
 import { useNavigate } from 'react-router-dom';
 import { getGems, getCategories } from '../services/api';
 import { useAppContext } from '../context/AppContext';
+import FavoriteButton from '../components/FavoriteButton';
 
 const SORT_OPTIONS = [
   { value: 'score', label: 'Score' },
@@ -77,6 +78,7 @@ function GemCard({ app }) {
               <Typography variant="subtitle2" fontWeight={600} noWrap>{app.title}</Typography>
               <Typography variant="caption" color="text.secondary" noWrap>{app.developer}</Typography>
             </Box>
+            <FavoriteButton app={app} />
             <Box sx={{
               display: 'flex', flexDirection: 'column', alignItems: 'center',
               bgcolor: app.gemScore >= 70 ? 'warning.main' : 'primary.main',

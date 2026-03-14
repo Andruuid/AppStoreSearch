@@ -4,6 +4,7 @@ import {
 import DownloadIcon from '@mui/icons-material/Download';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { useNavigate } from 'react-router-dom';
+import FavoriteButton from './FavoriteButton';
 
 function formatNumber(num) {
   if (!num) return '0';
@@ -24,65 +25,36 @@ export default function AppCard({ app }) {
       >
         <CardContent sx={{ flex: 1 }}>
           <Box sx={{ display: 'flex', gap: 1.5, mb: 1.5 }}>
-            <Avatar
-              src={app.icon}
-              variant="rounded"
-              sx={{ width: 56, height: 56 }}
-            />
+            <Avatar src={app.icon} variant="rounded" sx={{ width: 56, height: 56 }} />
             <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography variant="subtitle1" fontWeight={600} noWrap>
-                {app.title}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" noWrap>
-                {app.developer}
-              </Typography>
+              <Typography variant="subtitle1" fontWeight={600} noWrap>{app.title}</Typography>
+              <Typography variant="body2" color="text.secondary" noWrap>{app.developer}</Typography>
             </Box>
+            <FavoriteButton app={app} />
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
             {app.score != null && app.score > 0 && (
               <>
                 <Rating value={app.score} precision={0.1} size="small" readOnly />
-                <Typography variant="body2" color="text.secondary">
-                  {app.score.toFixed(1)}
-                </Typography>
+                <Typography variant="body2" color="text.secondary">{app.score.toFixed(1)}</Typography>
               </>
             )}
           </Box>
 
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
             {app.minInstalls > 0 && (
-              <Chip
-                icon={<DownloadIcon />}
-                label={formatNumber(app.minInstalls)}
-                size="small"
-                variant="outlined"
-              />
+              <Chip icon={<DownloadIcon />} label={formatNumber(app.minInstalls)} size="small" variant="outlined" />
             )}
             {!app.free && (
-              <Chip
-                icon={<AttachMoneyIcon />}
-                label={`$${app.price?.toFixed(2)}`}
-                size="small"
-                color="success"
-                variant="outlined"
-              />
+              <Chip icon={<AttachMoneyIcon />} label={`$${app.price?.toFixed(2)}`} size="small" color="success" variant="outlined" />
             )}
-            {app.offersIAP && (
-              <Chip label="IAP" size="small" color="info" variant="outlined" />
-            )}
-            {app.category && (
-              <Chip label={app.category} size="small" variant="outlined" />
-            )}
+            {app.offersIAP && <Chip label="IAP" size="small" color="info" variant="outlined" />}
+            {app.category && <Chip label={app.category} size="small" variant="outlined" />}
           </Box>
 
           {app.opportunityReason && (
-            <Chip
-              label={app.opportunityReason}
-              size="small"
-              color="warning"
-              sx={{ mt: 1, maxWidth: '100%' }}
-            />
+            <Chip label={app.opportunityReason} size="small" color="warning" sx={{ mt: 1, maxWidth: '100%' }} />
           )}
         </CardContent>
       </CardActionArea>

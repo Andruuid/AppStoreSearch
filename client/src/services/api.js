@@ -78,3 +78,23 @@ export async function resetCrawl() {
   const { data } = await api.post('/crawler/reset');
   return data;
 }
+
+export async function getFavorites() {
+  const { data } = await api.get('/favorites');
+  return data;
+}
+
+export async function getFavoriteIds() {
+  const { data } = await api.get('/favorites/ids');
+  return data;
+}
+
+export async function addFavorite(app) {
+  const { data } = await api.post('/favorites', app);
+  return data;
+}
+
+export async function removeFavorite(appId) {
+  const { data } = await api.delete(`/favorites/${encodeURIComponent(appId)}`);
+  return data;
+}

@@ -12,6 +12,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useNavigate } from 'react-router-dom';
 import { startCrawl, getCrawlStatus, getCrawledGems, dismissCrawledApp, resetCrawl } from '../services/api';
 import { useAppContext } from '../context/AppContext';
+import FavoriteButton from '../components/FavoriteButton';
 
 const SORT_OPTIONS = [
   { value: 'score', label: 'Score' },
@@ -88,7 +89,8 @@ function CrawlGemCard({ gem, onDismiss }) {
         </CardContent>
       </CardActionArea>
 
-      <Box sx={{ px: 1, pb: 1, display: 'flex', justifyContent: 'flex-end' }}>
+      <Box sx={{ px: 1, pb: 1, display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
+        <FavoriteButton app={{ ...gem, appId: gem.app_id }} />
         <Tooltip title="Not interested" arrow>
           <IconButton
             size="small"

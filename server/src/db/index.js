@@ -108,6 +108,24 @@ function initSchema(db) {
       completed_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS favorite_apps (
+      app_id TEXT PRIMARY KEY,
+      title TEXT,
+      developer TEXT,
+      developer_id TEXT,
+      icon TEXT,
+      score REAL,
+      min_installs INTEGER,
+      price REAL,
+      free INTEGER,
+      offers_iap INTEGER,
+      category TEXT,
+      url TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 }
 
 export function saveDb() {

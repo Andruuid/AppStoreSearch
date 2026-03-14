@@ -3,6 +3,7 @@ import {
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import { useNavigate } from 'react-router-dom';
+import FavoriteButton from './FavoriteButton';
 
 function formatNumber(num) {
   if (!num) return '0';
@@ -40,6 +41,8 @@ export default function AppListItem({ app }) {
           {app.opportunityReason && (
             <Chip label={app.opportunityReason} size="small" color="warning" sx={{ maxWidth: 280 }} />
           )}
+
+          <FavoriteButton app={app} />
         </CardContent>
       </CardActionArea>
     </Card>

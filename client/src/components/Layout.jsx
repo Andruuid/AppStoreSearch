@@ -10,9 +10,10 @@ import SearchIcon from '@mui/icons-material/Search';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import DiamondIcon from '@mui/icons-material/Diamond';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
+import StarIcon from '@mui/icons-material/Star';
 
 const DRAWER_WIDTH = 240;
-const APP_NAME = 'NicheFinder (v26314.1)';
+const APP_NAME = 'NicheFinder (v26314.2)';
 
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/', icon: <DashboardIcon /> },
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { label: 'Gem Crawler', path: '/crawler', icon: <ManageSearchIcon /> },
   { label: 'Search', path: '/search', icon: <SearchIcon /> },
   { label: 'Opportunities', path: '/opportunities', icon: <TrendingUpIcon /> },
+  { label: 'Favorites', path: '/favorites', icon: <StarIcon /> },
 ];
 
 export default function Layout() {

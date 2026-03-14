@@ -6,6 +6,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import WhatshotIcon from '@mui/icons-material/Whatshot';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
+import StarIcon from '@mui/icons-material/Star';
 
 const STRATEGIES = [
   {
@@ -148,16 +149,24 @@ export default function DashboardPage() {
         ))}
       </Grid>
 
-      <Box sx={{ mt: 4 }}>
+      <Box sx={{ mt: 4, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
         <Card
           variant="outlined"
-          sx={{ cursor: 'pointer', '&:hover': { borderColor: 'primary.main' } }}
+          sx={{ flex: 1, minWidth: 200, cursor: 'pointer', '&:hover': { borderColor: 'warning.main' } }}
+          onClick={() => navigate('/favorites')}
+        >
+          <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, py: 2.5 }}>
+            <StarIcon color="warning" />
+            <Typography variant="h6" color="warning.main">Favorites</Typography>
+          </CardContent>
+        </Card>
+        <Card
+          variant="outlined"
+          sx={{ flex: 1, minWidth: 200, cursor: 'pointer', '&:hover': { borderColor: 'primary.main' } }}
           onClick={() => navigate('/search')}
         >
           <CardContent sx={{ textAlign: 'center', py: 2.5 }}>
-            <Typography variant="h6" color="primary">
-              Go to Search
-            </Typography>
+            <Typography variant="h6" color="primary">Go to Search</Typography>
           </CardContent>
         </Card>
       </Box>

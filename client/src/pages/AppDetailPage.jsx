@@ -8,6 +8,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import DownloadIcon from '@mui/icons-material/Download';
 import AppCard from '../components/AppCard';
+import FavoriteButton from '../components/FavoriteButton';
 import { getAppDetail, getSimilarApps, getDeveloperInfo } from '../services/api';
 
 function formatNumber(num) {
@@ -121,7 +122,8 @@ export default function AppDetailPage() {
               </Box>
             </Box>
 
-            <Box>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+              <FavoriteButton app={app} size="medium" />
               <Link href={app.url} target="_blank" rel="noopener noreferrer" underline="none">
                 <Button variant="outlined" endIcon={<OpenInNewIcon />}>
                   Play Store

@@ -3,6 +3,7 @@ import cors from 'cors';
 import searchRoutes from './routes/search.js';
 import opportunityRoutes from './routes/opportunities.js';
 import crawlerRoutes from './routes/crawler.js';
+import favoriteRoutes from './routes/favorites.js';
 import { getDb } from './db/index.js';
 
 const app = express();
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use('/api', searchRoutes);
 app.use('/api', opportunityRoutes);
 app.use('/api', crawlerRoutes);
+app.use('/api', favoriteRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
