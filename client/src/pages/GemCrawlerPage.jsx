@@ -13,6 +13,17 @@ import { useNavigate } from 'react-router-dom';
 import { startCrawl, getCrawlStatus, getCrawledGems, dismissCrawledApp, resetCrawl } from '../services/api';
 import { useAppContext } from '../context/AppContext';
 
+const SORT_OPTIONS = [
+  { value: 'score', label: 'Score' },
+  { value: 'installs', label: 'Installs' },
+  { value: 'date', label: 'Date' },
+];
+
+const DIR_OPTIONS = [
+  { value: 'desc', label: 'Descending' },
+  { value: 'asc', label: 'Ascending' },
+];
+
 function formatNumber(num) {
   if (!num) return '0';
   if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`;
@@ -98,11 +109,13 @@ export default function GemCrawlerPage() {
   const [gems, setGems] = useState(crawlerState.gems || []);
   const [threshold, setThreshold] = useState(crawlerState.threshold || 40);
   const [budget, setBudget] = useState(crawlerState.budget || 200);
+  const [sortBy, setSortBy] = useState(crawlerState.sortBy || 'score');
+  const [sortDir, setSortDir] = useState(crawlerState.sortDir || 'desc');
   const [error, setError] = useState(null);
   const pollingRef = useRef(null);
 
-  const persistState = useCallback((s, g, t, b) => {
-    setCrawlerState({ status: s, gems: g, threshold: t, budget: b });
+  const persistState = useCallback((s, g, t, b, sb, sd) => {
+    setCrawlerState({ status: s, gems: g, threshold: t, budget: b, sortBy: sb, sortDir: sd });
   }, [setCrawlerState]);
 
   const fetchStatus = useCallback(async () => {
@@ -110,30 +123,34 @@ export default function GemCrawlerPage() {
       const s = await getCrawlStatus();
       setStatus(s);
       if (s.running) {
-        const g = await getCrawledGems();
+        const g = await getCrawledGems({ sortBy, sortDir });
         setGems(g);
-        persistState(s, g, threshold, budget);
+        persistState(s, g, threshold, budget, sortBy, sortDir);
       }
       return s;
     } catch { return null; }
-  }, [threshold, budget, persistState]);
+  }, [threshold, budget, sortBy, sortDir, persistState]);
 
   const fetchGems = useCallback(async () => {
     try {
-      const g = await getCrawledGems();
+      const g = await getCrawledGems({ sortBy, sortDir });
       setGems(g);
       return g;
     } catch { return []; }
-  }, []);
+  }, [sortBy, sortDir]);
 
   useEffect(() => {
     fetchStatus().then(s => {
-      fetchGems().then(g => persistState(s, g, threshold, budget));
+      fetchGems().then(g => persistState(s, g, threshold, budget, sortBy, sortDir));
       if (s?.running) startPolling();
     });
     return () => stopPolling();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    fetchGems().then(g => persistState(status, g, threshold, budget, sortBy, sortDir));
+  }, [sortBy, sortDir, fetchGems, status, threshold, budget, persistState]);
 
   const startPolling = () => {
     stopPolling();
@@ -142,7 +159,7 @@ export default function GemCrawlerPage() {
       if (s && !s.running) {
         stopPolling();
         const g = await fetchGems();
-        persistState(s, g, threshold, budget);
+        persistState(s, g, threshold, budget, sortBy, sortDir);
       }
     }, 3000);
   };
@@ -171,7 +188,7 @@ export default function GemCrawlerPage() {
       await resetCrawl();
       setGems([]);
       const s = await fetchStatus();
-      persistState(s, [], threshold, budget);
+      persistState(s, [], threshold, budget, sortBy, sortDir);
     } catch (err) {
       setError(err.response?.data?.message || err.message);
     }
@@ -270,6 +287,35 @@ export default function GemCrawlerPage() {
             >
               Reset
             </Button>
+          </Box>
+        </Box>
+
+        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mb: 2 }}>
+          <Box sx={{ minWidth: 180 }}>
+            <Typography variant="caption" color="text.secondary" gutterBottom>
+              Sort by
+            </Typography>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              disabled={isRunning}
+              style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #d0d0d0' }}
+            >
+              {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </Box>
+          <Box sx={{ minWidth: 180 }}>
+            <Typography variant="caption" color="text.secondary" gutterBottom>
+              Direction
+            </Typography>
+            <select
+              value={sortDir}
+              onChange={(e) => setSortDir(e.target.value)}
+              disabled={isRunning}
+              style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #d0d0d0' }}
+            >
+              {DIR_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
           </Box>
         </Box>
 

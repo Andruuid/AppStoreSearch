@@ -64,8 +64,8 @@ export async function getCrawlStatus() {
   return data;
 }
 
-export async function getCrawledGems() {
-  const { data } = await api.get('/crawler/gems');
+export async function getCrawledGems(params) {
+  const { data } = await api.get('/crawler/gems', { params });
   return data;
 }
 

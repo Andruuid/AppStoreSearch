@@ -31,9 +31,10 @@ router.get('/crawler/status', async (_req, res) => {
   }
 });
 
-router.get('/crawler/gems', async (_req, res) => {
+router.get('/crawler/gems', async (req, res) => {
   try {
-    const gems = await getCrawledGems();
+    const { sortBy, sortDir } = req.query || {};
+    const gems = await getCrawledGems({ sortBy, sortDir });
     res.json(gems);
   } catch (err) {
     res.status(500).json({ error: 'Failed to get gems', message: err.message });

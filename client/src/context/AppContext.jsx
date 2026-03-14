@@ -15,12 +15,16 @@ export function AppProvider({ children }) {
     searched: false,
     tab: 0,
     category: '',
+    sortBy: 'installs',
+    sortDir: 'desc',
   });
 
   const [gemState, setGemState] = useState({
     results: [],
     searched: false,
     category: '',
+    sortBy: 'score',
+    sortDir: 'desc',
   });
 
   const [crawlerState, setCrawlerState] = useState({
@@ -28,6 +32,8 @@ export function AppProvider({ children }) {
     gems: [],
     threshold: 40,
     budget: 200,
+    sortBy: 'score',
+    sortDir: 'desc',
   });
 
   return (

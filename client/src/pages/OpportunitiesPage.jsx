@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Box, Typography, Tabs, Tab, Grid, CircularProgress, Alert,
@@ -15,13 +15,45 @@ const TAB_CONFIG = [
   { label: 'Trending', fetcher: getTrending, description: 'Recently updated and growing apps in niche categories.' },
 ];
 
+const SORT_OPTIONS = [
+  { value: 'score', label: 'Score' },
+  { value: 'installs', label: 'Installs' },
+  { value: 'date', label: 'Date' },
+];
+
+const DIR_OPTIONS = [
+  { value: 'desc', label: 'Descending' },
+  { value: 'asc', label: 'Ascending' },
+];
+
+function getDateValue(app) {
+  return Date.parse(app.released || app.releasedDate || app.updated || '') || 0;
+}
+
 export default function OpportunitiesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { opportunityState, setOpportunityState } = useAppContext();
-  const { results, searched, tab, category } = opportunityState;
+  const {
+    results,
+    searched,
+    tab,
+    category,
+    sortBy = 'installs',
+    sortDir = 'desc',
+  } = opportunityState;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [categories, setCategories] = useState([]);
+
+  const sortedResults = useMemo(() => {
+    const arr = [...results];
+    const factor = sortDir === 'asc' ? 1 : -1;
+    return arr.sort((a, b) => {
+      if (sortBy === 'score') return ((a.score || 0) - (b.score || 0)) * factor;
+      if (sortBy === 'date') return (getDateValue(a) - getDateValue(b)) * factor;
+      return ((a.minInstalls || 0) - (b.minInstalls || 0)) * factor;
+    });
+  }, [results, sortBy, sortDir]);
 
   const initialTab = parseInt(searchParams.get('tab'));
   useEffect(() => {
@@ -62,6 +94,14 @@ export default function OpportunitiesPage() {
     setOpportunityState(prev => ({ ...prev, category: e.target.value }));
   };
 
+  const handleSortByChange = (e) => {
+    setOpportunityState(prev => ({ ...prev, sortBy: e.target.value }));
+  };
+
+  const handleSortDirChange = (e) => {
+    setOpportunityState(prev => ({ ...prev, sortDir: e.target.value }));
+  };
+
   return (
     <Box>
       <Typography variant="h4" fontWeight={700} gutterBottom>
@@ -98,6 +138,34 @@ export default function OpportunitiesPage() {
         </Button>
       </Box>
 
+      <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mb: 2 }}>
+        <TextField
+          select
+          value={sortBy}
+          onChange={handleSortByChange}
+          size="small"
+          sx={{ minWidth: 180 }}
+          label="Sort by"
+        >
+          {SORT_OPTIONS.map(o => (
+            <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
+          ))}
+        </TextField>
+
+        <TextField
+          select
+          value={sortDir}
+          onChange={handleSortDirChange}
+          size="small"
+          sx={{ minWidth: 180 }}
+          label="Direction"
+        >
+          {DIR_OPTIONS.map(o => (
+            <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
+          ))}
+        </TextField>
+      </Box>
+
       {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
           <CircularProgress />
@@ -112,7 +180,7 @@ export default function OpportunitiesPage() {
             {results.length} opportunities found
           </Typography>
           <Grid container spacing={2}>
-            {results.map(app => (
+            {sortedResults.map(app => (
               <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={app.appId}>
                 <AppCard app={app} />
               </Grid>

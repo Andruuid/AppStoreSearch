@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Box, Typography, Grid, CircularProgress, Alert, TextField, MenuItem, Button,
   Card, CardActionArea, CardContent, Avatar, Chip, Rating, LinearProgress,
@@ -8,6 +8,17 @@ import DiamondIcon from '@mui/icons-material/Diamond';
 import { useNavigate } from 'react-router-dom';
 import { getGems, getCategories } from '../services/api';
 import { useAppContext } from '../context/AppContext';
+
+const SORT_OPTIONS = [
+  { value: 'score', label: 'Score' },
+  { value: 'installs', label: 'Installs' },
+  { value: 'date', label: 'Date' },
+];
+
+const DIR_OPTIONS = [
+  { value: 'desc', label: 'Descending' },
+  { value: 'asc', label: 'Ascending' },
+];
 
 function formatNumber(num) {
   if (!num) return '0';
@@ -34,6 +45,10 @@ function ScoreBar({ label, value, max }) {
       </Box>
     </Tooltip>
   );
+}
+
+function getDateValue(app) {
+  return Date.parse(app.released || app.releasedDate || app.updated || '') || 0;
 }
 
 function GemCard({ app }) {
@@ -111,10 +126,30 @@ function GemCard({ app }) {
 
 export default function GemFinderPage() {
   const { gemState, setGemState } = useAppContext();
-  const { results, searched, category } = gemState;
+  const {
+    results,
+    searched,
+    category,
+    sortBy = 'score',
+    sortDir = 'desc',
+  } = gemState;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [categories, setCategories] = useState([]);
+
+  const sortedResults = useMemo(() => {
+    const arr = [...results];
+    const factor = sortDir === 'asc' ? 1 : -1;
+    return arr.sort((a, b) => {
+      if (sortBy === 'installs') {
+        return ((a.minInstalls || 0) - (b.minInstalls || 0)) * factor;
+      }
+      if (sortBy === 'date') {
+        return (getDateValue(a) - getDateValue(b)) * factor;
+      }
+      return ((a.gemScore || 0) - (b.gemScore || 0)) * factor;
+    });
+  }, [results, sortBy, sortDir]);
 
   useEffect(() => {
     getCategories().then(setCategories).catch(() => {});
@@ -139,6 +174,14 @@ export default function GemFinderPage() {
 
   const handleCategoryChange = (e) => {
     setGemState(prev => ({ ...prev, category: e.target.value }));
+  };
+
+  const handleSortByChange = (e) => {
+    setGemState(prev => ({ ...prev, sortBy: e.target.value }));
+  };
+
+  const handleSortDirChange = (e) => {
+    setGemState(prev => ({ ...prev, sortDir: e.target.value }));
   };
 
   return (
@@ -179,6 +222,33 @@ export default function GemFinderPage() {
         </Button>
       </Box>
 
+      <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mb: 2 }}>
+        <TextField
+          select
+          value={sortBy}
+          onChange={handleSortByChange}
+          size="small"
+          sx={{ minWidth: 180 }}
+          label="Sort by"
+        >
+          {SORT_OPTIONS.map(o => (
+            <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
+          ))}
+        </TextField>
+        <TextField
+          select
+          value={sortDir}
+          onChange={handleSortDirChange}
+          size="small"
+          sx={{ minWidth: 180 }}
+          label="Direction"
+        >
+          {DIR_OPTIONS.map(o => (
+            <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
+          ))}
+        </TextField>
+      </Box>
+
       {loading && (
         <Box sx={{ textAlign: 'center', py: 6 }}>
           <CircularProgress />
@@ -194,10 +264,10 @@ export default function GemFinderPage() {
       {!loading && results.length > 0 && (
         <>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            {results.length} gems found, sorted by replicability score
+            {results.length} gems found
           </Typography>
           <Grid container spacing={2}>
-            {results.map(app => (
+            {sortedResults.map(app => (
               <Grid size={{ xs: 12, sm: 6, md: 4 }} key={app.appId}>
                 <GemCard app={app} />
               </Grid>

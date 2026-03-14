@@ -154,13 +154,20 @@ export async function saveCrawledGem(gem) {
   saveDb();
 }
 
-export async function getCrawledGems() {
+export async function getCrawledGems(options = {}) {
   const db = await getDb();
   const results = [];
+  const SORT_FIELDS = {
+    score: 'gem_score',
+    installs: 'min_installs',
+    date: 'discovered_at',
+  };
+  const sortField = SORT_FIELDS[options.sortBy] || 'gem_score';
+  const sortDir = String(options.sortDir || 'desc').toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
   const stmt = db.prepare(`
     SELECT * FROM crawled_gems
     WHERE app_id NOT IN (SELECT app_id FROM dismissed_apps)
-    ORDER BY gem_score DESC
+    ORDER BY ${sortField} ${sortDir}
   `);
   while (stmt.step()) {
     const row = stmt.getAsObject();
