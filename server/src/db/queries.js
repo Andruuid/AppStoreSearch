@@ -8,6 +8,130 @@ function isStale(scrapedAt) {
   return age > CACHE_TTL_HOURS * 60 * 60 * 1000;
 }
 
+function jsonField(value) {
+  if (value == null) return null;
+  if (typeof value === 'string') return value;
+  try { return JSON.stringify(value); } catch { return null; }
+}
+
+function parseJsonField(value) {
+  if (!value) return null;
+  if (typeof value === 'object') return value;
+  try { return JSON.parse(value); } catch { return null; }
+}
+
+function appToDbParams(app) {
+  return [
+    app.appId,
+    app.title ?? null,
+    app.developer ?? null,
+    app.developerId ?? null,
+    app.score ?? null,
+    app.ratings ?? null,
+    app.reviews ?? null,
+    app.minInstalls ?? null,
+    app.maxInstalls ?? null,
+    app.price ?? null,
+    app.free ? 1 : 0,
+    app.currency ?? null,
+    app.offersIAP ? 1 : 0,
+    app.genre || app.category || null,
+    app.icon ?? null,
+    app.url ?? null,
+    app.description ?? null,
+    app.updated ?? null,
+    app.summary ?? null,
+    app.genreId ?? app.genre_id ?? null,
+    app.headerImage ?? app.header_image ?? null,
+    app.video ?? null,
+    jsonField(app.screenshots),
+    jsonField(app.histogram),
+  ];
+}
+
+const UPSERT_APP_SQL = `
+  INSERT INTO apps
+    (app_id, title, developer, developer_id, score, ratings, reviews,
+     min_installs, max_installs, price, free, currency, offers_iap,
+     category, icon, url, description, updated, scraped_at,
+     summary, genre_id, header_image, video, screenshots, histogram,
+     first_seen_at, last_seen_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'),
+          ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+  ON CONFLICT(app_id) DO UPDATE SET
+    title = excluded.title,
+    developer = excluded.developer,
+    developer_id = excluded.developer_id,
+    score = excluded.score,
+    ratings = excluded.ratings,
+    reviews = excluded.reviews,
+    min_installs = excluded.min_installs,
+    max_installs = excluded.max_installs,
+    price = excluded.price,
+    free = excluded.free,
+    currency = excluded.currency,
+    offers_iap = excluded.offers_iap,
+    category = excluded.category,
+    icon = excluded.icon,
+    url = excluded.url,
+    description = COALESCE(excluded.description, apps.description),
+    updated = excluded.updated,
+    scraped_at = datetime('now'),
+    summary = COALESCE(excluded.summary, apps.summary),
+    genre_id = COALESCE(excluded.genre_id, apps.genre_id),
+    header_image = COALESCE(excluded.header_image, apps.header_image),
+    video = COALESCE(excluded.video, apps.video),
+    screenshots = COALESCE(excluded.screenshots, apps.screenshots),
+    histogram = COALESCE(excluded.histogram, apps.histogram),
+    last_seen_at = datetime('now')
+`;
+
+export function catalogueRowToCamel(row) {
+  if (!row) return null;
+  return {
+    appId: row.app_id,
+    title: row.title,
+    developer: row.developer,
+    developerId: row.developer_id,
+    score: row.score,
+    ratings: row.ratings,
+    reviews: row.reviews,
+    minInstalls: row.min_installs,
+    maxInstalls: row.max_installs,
+    price: row.price,
+    free: row.free === 1,
+    currency: row.currency,
+    offersIAP: row.offers_iap === 1,
+    genre: row.category,
+    genreId: row.genre_id,
+    category: row.category,
+    icon: row.icon,
+    url: row.url,
+    description: row.description,
+    summary: row.summary,
+    updated: row.updated,
+    headerImage: row.header_image,
+    video: row.video,
+    screenshots: parseJsonField(row.screenshots),
+    histogram: parseJsonField(row.histogram),
+    gemScore: row.gem_score,
+    gemBreakdown: parseJsonField(row.gem_breakdown),
+    gemReason: row.gem_reason,
+    developerAppCount: row.developer_app_count,
+    firstSeenAt: row.first_seen_at,
+    lastSeenAt: row.last_seen_at,
+    scrapedAt: row.scraped_at,
+  };
+}
+
+function parseAppRow(row) {
+  if (!row) return row;
+  row.screenshots = parseJsonField(row.screenshots);
+  row.histogram = parseJsonField(row.histogram);
+  row.gem_breakdown = parseJsonField(row.gem_breakdown);
+  return row;
+}
+
 export async function getCachedApp(appId) {
   const db = await getDb();
   const stmt = db.prepare('SELECT * FROM apps WHERE app_id = ?');
@@ -24,26 +148,95 @@ export async function getCachedApp(appId) {
 
 export async function upsertApp(app) {
   const db = await getDb();
-  db.run(`
-    INSERT OR REPLACE INTO apps
-      (app_id, title, developer, developer_id, score, ratings, reviews,
-       min_installs, max_installs, price, free, currency, offers_iap,
-       category, icon, url, description, updated, scraped_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-  `, [
-    app.appId, app.title, app.developer, app.developerId,
-    app.score, app.ratings, app.reviews,
-    app.minInstalls, app.maxInstalls, app.price,
-    app.free ? 1 : 0, app.currency, app.offersIAP ? 1 : 0,
-    app.genre, app.icon, app.url, app.description, app.updated
-  ]);
+  db.run(UPSERT_APP_SQL, appToDbParams(app));
   saveDb();
 }
 
 export async function upsertApps(apps) {
+  await upsertAppsBatch(apps);
+}
+
+export async function upsertAppsBatch(apps) {
+  if (!Array.isArray(apps) || apps.length === 0) return;
+  const db = await getDb();
   for (const app of apps) {
-    await upsertApp(app);
+    if (!app?.appId) continue;
+    db.run(UPSERT_APP_SQL, appToDbParams(app));
   }
+  saveDb();
+}
+
+export async function isKnownApp(appId) {
+  const db = await getDb();
+  const stmt = db.prepare('SELECT 1 FROM apps WHERE app_id = ?');
+  stmt.bind([appId]);
+  const exists = stmt.step();
+  stmt.free();
+  return exists;
+}
+
+export async function getKnownAppIds(appIds) {
+  const known = new Set();
+  if (!Array.isArray(appIds) || appIds.length === 0) return known;
+  const db = await getDb();
+  const placeholders = appIds.map(() => '?').join(',');
+  const stmt = db.prepare(`SELECT app_id FROM apps WHERE app_id IN (${placeholders})`);
+  stmt.bind(appIds);
+  while (stmt.step()) {
+    known.add(stmt.getAsObject().app_id);
+  }
+  stmt.free();
+  return known;
+}
+
+export async function recordAppDiscovery(appId, category, keyword) {
+  const db = await getDb();
+  db.run(
+    `INSERT OR IGNORE INTO app_discoveries (app_id, category, keyword, discovered_at) VALUES (?, ?, ?, datetime('now'))`,
+    [appId, category, keyword]
+  );
+  saveDb();
+}
+
+export async function recordAppDiscoveriesBatch(discoveries) {
+  if (!Array.isArray(discoveries) || discoveries.length === 0) return;
+  const db = await getDb();
+  for (const { appId, category, keyword } of discoveries) {
+    if (!appId) continue;
+    db.run(
+      `INSERT OR IGNORE INTO app_discoveries (app_id, category, keyword, discovered_at) VALUES (?, ?, ?, datetime('now'))`,
+      [appId, category, keyword]
+    );
+  }
+  saveDb();
+}
+
+export async function getCatalogueApp(appId) {
+  const db = await getDb();
+  const stmt = db.prepare('SELECT * FROM apps WHERE app_id = ?');
+  stmt.bind([appId]);
+  if (stmt.step()) {
+    const row = parseAppRow(stmt.getAsObject());
+    stmt.free();
+    return row;
+  }
+  stmt.free();
+  return null;
+}
+
+export async function getCatalogueStats() {
+  const db = await getDb();
+  const stmt = db.prepare(`
+    SELECT
+      (SELECT COUNT(*) FROM apps) AS total_apps,
+      (SELECT COUNT(DISTINCT category) FROM apps WHERE category IS NOT NULL) AS categories,
+      (SELECT COUNT(*) FROM apps WHERE gem_score IS NOT NULL) AS gems,
+      (SELECT MAX(discovered_at) FROM app_discoveries) AS latest_discovery
+  `);
+  stmt.step();
+  const row = stmt.getAsObject();
+  stmt.free();
+  return row;
 }
 
 export async function getCachedDeveloper(developerId) {
@@ -94,41 +287,118 @@ export async function setCachedSearch(key, results) {
   saveDb();
 }
 
+const SORT_FIELDS = {
+  installs: 'a.min_installs',
+  score: 'a.score',
+  date: 'a.first_seen_at',
+  title: 'a.title',
+  gem_score: 'a.gem_score',
+};
+
 export async function queryApps(filters = {}) {
   const db = await getDb();
   const conditions = [];
   const params = [];
+  let join = '';
 
+  if (filters.keyword) {
+    join = 'INNER JOIN app_discoveries d ON d.app_id = a.app_id';
+    conditions.push('d.keyword LIKE ?');
+    params.push(`%${filters.keyword}%`);
+  }
   if (filters.category) {
-    conditions.push('category = ?');
+    conditions.push('a.category = ?');
     params.push(filters.category);
   }
+  if (filters.search) {
+    conditions.push('(a.title LIKE ? OR a.developer LIKE ?)');
+    const term = `%${filters.search}%`;
+    params.push(term, term);
+  }
   if (filters.maxScore != null) {
-    conditions.push('score <= ?');
+    conditions.push('a.score <= ?');
     params.push(filters.maxScore);
   }
   if (filters.minInstalls != null) {
-    conditions.push('min_installs >= ?');
+    conditions.push('a.min_installs >= ?');
     params.push(filters.minInstalls);
   }
   if (filters.freeOnly != null) {
-    conditions.push('free = ?');
+    conditions.push('a.free = ?');
     params.push(filters.freeOnly ? 1 : 0);
   }
   if (filters.hasIAP != null) {
-    conditions.push('offers_iap = ?');
+    conditions.push('a.offers_iap = ?');
     params.push(filters.hasIAP ? 1 : 0);
+  }
+  if (filters.gemsOnly) {
+    conditions.push('a.gem_score IS NOT NULL');
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-  const orderBy = filters.orderBy || 'min_installs DESC';
-  const limit = filters.limit || 50;
+  const sortField = SORT_FIELDS[filters.sortBy] || 'a.last_seen_at';
+  const sortDir = String(filters.sortDir || 'desc').toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+  const limit = Math.min(parseInt(filters.limit) || 50, 200);
+  const offset = parseInt(filters.offset) || 0;
 
   const results = [];
-  const stmt = db.prepare(`SELECT * FROM apps ${where} ORDER BY ${orderBy} LIMIT ?`);
-  stmt.bind([...params, limit]);
+  const stmt = db.prepare(`
+    SELECT DISTINCT a.* FROM apps a
+    ${join}
+    ${where}
+    ORDER BY ${sortField} ${sortDir}
+    LIMIT ? OFFSET ?
+  `);
+  stmt.bind([...params, limit, offset]);
   while (stmt.step()) {
-    results.push(stmt.getAsObject());
+    results.push(parseAppRow(stmt.getAsObject()));
+  }
+  stmt.free();
+
+  let total = results.length;
+  if (offset === 0 && results.length < limit) {
+    total = results.length;
+  } else {
+    const countStmt = db.prepare(`
+      SELECT COUNT(DISTINCT a.app_id) AS count FROM apps a
+      ${join}
+      ${where}
+    `);
+    countStmt.bind(params);
+    if (countStmt.step()) {
+      total = countStmt.getAsObject().count;
+    }
+    countStmt.free();
+  }
+
+  return { items: results, total, limit, offset };
+}
+
+export async function getDiscoveryKeywords() {
+  const db = await getDb();
+  const results = [];
+  const stmt = db.prepare(`
+    SELECT DISTINCT keyword FROM app_discoveries
+    WHERE keyword IS NOT NULL
+    ORDER BY keyword
+  `);
+  while (stmt.step()) {
+    results.push(stmt.getAsObject().keyword);
+  }
+  stmt.free();
+  return results;
+}
+
+export async function getCatalogueCategories() {
+  const db = await getDb();
+  const results = [];
+  const stmt = db.prepare(`
+    SELECT DISTINCT category FROM apps
+    WHERE category IS NOT NULL
+    ORDER BY category
+  `);
+  while (stmt.step()) {
+    results.push(stmt.getAsObject().category);
   }
   stmt.free();
   return results;
@@ -151,18 +421,32 @@ export async function saveCrawledGem(gem) {
     gem.gemScore, JSON.stringify(gem.gemBreakdown), gem.gemReason,
     gem.developerAppCount,
   ]);
+  db.run(`
+    UPDATE apps SET
+      gem_score = ?,
+      gem_breakdown = ?,
+      gem_reason = ?,
+      developer_app_count = ?
+    WHERE app_id = ?
+  `, [
+    gem.gemScore,
+    JSON.stringify(gem.gemBreakdown),
+    gem.gemReason,
+    gem.developerAppCount,
+    gem.appId,
+  ]);
   saveDb();
 }
 
 export async function getCrawledGems(options = {}) {
   const db = await getDb();
   const results = [];
-  const SORT_FIELDS = {
+  const GEM_SORT_FIELDS = {
     score: 'gem_score',
     installs: 'min_installs',
     date: 'discovered_at',
   };
-  const sortField = SORT_FIELDS[options.sortBy] || 'gem_score';
+  const sortField = GEM_SORT_FIELDS[options.sortBy] || 'gem_score';
   const sortDir = String(options.sortDir || 'desc').toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
   const stmt = db.prepare(`
     SELECT * FROM crawled_gems
@@ -234,11 +518,21 @@ export async function getCrawlProgressCount() {
   return row.count;
 }
 
-export async function resetCrawlData() {
+export async function resetCrawlProgress() {
   const db = await getDb();
   db.run('DELETE FROM crawl_progress');
+  saveDb();
+}
+
+export async function resetCrawledGems() {
+  const db = await getDb();
   db.run('DELETE FROM crawled_gems');
   saveDb();
+}
+
+export async function resetCrawlData() {
+  await resetCrawlProgress();
+  await resetCrawledGems();
 }
 
 export async function isAlreadyCrawledGem(appId) {

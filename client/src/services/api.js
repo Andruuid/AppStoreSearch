@@ -79,6 +79,26 @@ export async function resetCrawl() {
   return data;
 }
 
+export async function getCatalogue(params) {
+  const { data } = await api.get('/catalogue', { params });
+  return data;
+}
+
+export async function getCatalogueStats() {
+  const { data } = await api.get('/catalogue/stats');
+  return data;
+}
+
+export async function getCatalogueCategories() {
+  const { data } = await api.get('/catalogue/categories');
+  return data;
+}
+
+export async function getCatalogueKeywords() {
+  const { data } = await api.get('/catalogue/keywords');
+  return data;
+}
+
 export async function getFavorites() {
   const { data } = await api.get('/favorites');
   return data;

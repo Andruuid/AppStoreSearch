@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { searchApps, getAppDetail, getSimilarApps, getDeveloperApps, getCategories } from '../services/playScraper.js';
+import { getCatalogueApp, catalogueRowToCamel } from '../db/queries.js';
 
 const router = Router();
 
@@ -23,6 +24,10 @@ router.get('/search', async (req, res) => {
 
 router.get('/app/:appId', async (req, res) => {
   try {
+    const cached = await getCatalogueApp(req.params.appId);
+    if (cached) {
+      return res.json(catalogueRowToCamel(cached));
+    }
     const detail = await getAppDetail(req.params.appId);
     res.json(detail);
   } catch (err) {

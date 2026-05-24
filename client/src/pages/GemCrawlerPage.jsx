@@ -10,6 +10,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import DiamondIcon from '@mui/icons-material/Diamond';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import { startCrawl, getCrawlStatus, getCrawledGems, dismissCrawledApp, resetCrawl } from '../services/api';
 import { useAppContext } from '../context/AppContext';
 import FavoriteButton from '../components/FavoriteButton';
@@ -342,6 +343,17 @@ export default function GemCrawlerPage() {
           {isComplete && <CheckCircleIcon color="success" fontSize="small" />}
           <Typography variant="body2" color="text.secondary">{statusLabel}</Typography>
         </Box>
+
+        {status?.totalCatalogueApps != null && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              {status.totalCatalogueApps} apps stored in catalogue.
+            </Typography>
+            <Button component={RouterLink} to="/catalogue" size="small">
+              Browse all stored apps
+            </Button>
+          </Box>
+        )}
       </Card>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}

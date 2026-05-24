@@ -29,6 +29,23 @@ export async function getDb() {
   return db;
 }
 
+function getTableColumns(db, table) {
+  const cols = new Set();
+  const stmt = db.prepare(`PRAGMA table_info(${table})`);
+  while (stmt.step()) {
+    cols.add(stmt.getAsObject().name);
+  }
+  stmt.free();
+  return cols;
+}
+
+function addColumnIfMissing(db, table, column, definition) {
+  const cols = getTableColumns(db, table);
+  if (!cols.has(column)) {
+    db.run(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  }
+}
+
 function initSchema(db) {
   db.run(`
     CREATE TABLE IF NOT EXISTS apps (
@@ -50,9 +67,35 @@ function initSchema(db) {
       url TEXT,
       description TEXT,
       updated TEXT,
-      scraped_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      scraped_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      summary TEXT,
+      genre_id TEXT,
+      header_image TEXT,
+      video TEXT,
+      screenshots TEXT,
+      histogram TEXT,
+      first_seen_at DATETIME,
+      last_seen_at DATETIME,
+      gem_score INTEGER,
+      gem_breakdown TEXT,
+      gem_reason TEXT,
+      developer_app_count INTEGER
     )
   `);
+
+  // Migrate existing databases created before catalogue columns existed
+  addColumnIfMissing(db, 'apps', 'summary', 'TEXT');
+  addColumnIfMissing(db, 'apps', 'genre_id', 'TEXT');
+  addColumnIfMissing(db, 'apps', 'header_image', 'TEXT');
+  addColumnIfMissing(db, 'apps', 'video', 'TEXT');
+  addColumnIfMissing(db, 'apps', 'screenshots', 'TEXT');
+  addColumnIfMissing(db, 'apps', 'histogram', 'TEXT');
+  addColumnIfMissing(db, 'apps', 'first_seen_at', 'DATETIME');
+  addColumnIfMissing(db, 'apps', 'last_seen_at', 'DATETIME');
+  addColumnIfMissing(db, 'apps', 'gem_score', 'INTEGER');
+  addColumnIfMissing(db, 'apps', 'gem_breakdown', 'TEXT');
+  addColumnIfMissing(db, 'apps', 'gem_reason', 'TEXT');
+  addColumnIfMissing(db, 'apps', 'developer_app_count', 'INTEGER');
 
   db.run(`
     CREATE TABLE IF NOT EXISTS developers (
@@ -124,6 +167,16 @@ function initSchema(db) {
       category TEXT,
       url TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS app_discoveries (
+      app_id TEXT NOT NULL,
+      category TEXT,
+      keyword TEXT,
+      discovered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (app_id, category, keyword)
     )
   `);
 }

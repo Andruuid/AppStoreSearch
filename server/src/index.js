@@ -4,6 +4,7 @@ import searchRoutes from './routes/search.js';
 import opportunityRoutes from './routes/opportunities.js';
 import crawlerRoutes from './routes/crawler.js';
 import favoriteRoutes from './routes/favorites.js';
+import catalogueRoutes from './routes/catalogue.js';
 import { getDb } from './db/index.js';
 
 const app = express();
@@ -16,6 +17,7 @@ app.use('/api', searchRoutes);
 app.use('/api', opportunityRoutes);
 app.use('/api', crawlerRoutes);
 app.use('/api', favoriteRoutes);
+app.use('/api', catalogueRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

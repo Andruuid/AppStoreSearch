@@ -1,9 +1,11 @@
-import { searchApps, getDeveloperApps, getKeywordsForCategory } from './playScraper.js';
+import { searchApps, getDeveloperApps, getKeywordsForCategory, getAppDetail } from './playScraper.js';
 import { calculateGemScore, isGemCandidate, NICHE_CATEGORIES } from './gemScoring.js';
 import {
   saveCrawledGem, getCrawledGems, getCrawledGemCount, isDismissed,
   dismissApp, getCompletedCrawlKeys, markCrawlKeyDone,
   getCrawlProgressCount, resetCrawlData, isAlreadyCrawledGem,
+  upsertAppsBatch, recordAppDiscoveriesBatch, getKnownAppIds,
+  getCatalogueStats,
 } from '../db/queries.js';
 
 let crawlState = {
@@ -34,6 +36,7 @@ export async function getCrawlStatus() {
   const completedCount = await getCrawlProgressCount();
   const totalCount = getTotalKeywordCount();
   const gemCount = await getCrawledGemCount();
+  const catalogueStats = await getCatalogueStats();
 
   return {
     running: crawlState.running,
@@ -44,6 +47,7 @@ export async function getCrawlStatus() {
     currentKeyword: crawlState.currentKeyword,
     gemsFoundThisSession: crawlState.gemsFoundThisSession,
     totalGems: gemCount,
+    totalCatalogueApps: catalogueStats.total_apps,
     stoppedReason: crawlState.stoppedReason,
     isComplete: completedCount >= totalCount,
   };
@@ -98,12 +102,45 @@ export async function runCrawl({ budget = 200, threshold = 40 } = {}) {
         continue;
       }
 
+      const appIds = apps.map(a => a.appId).filter(Boolean);
+      const knownBefore = await getKnownAppIds(appIds);
+
+      await upsertAppsBatch(apps);
+      await recordAppDiscoveriesBatch(
+        apps.filter(a => a.appId).map(a => ({
+          appId: a.appId,
+          category: item.category,
+          keyword: item.keyword,
+        }))
+      );
+
+      const newApps = apps.filter(a => a.appId && !knownBefore.has(a.appId));
+      const enrichedApps = new Map(apps.map(a => [a.appId, a]));
+
+      for (const app of newApps) {
+        if (crawlState.budgetUsed >= budget) break;
+        try {
+          const detail = await getAppDetail(app.appId);
+          enrichedApps.set(app.appId, { ...app, ...detail });
+          crawlState.budgetUsed++;
+        } catch {
+          // Keep search result data if detail fetch fails
+        }
+      }
+
+      if (newApps.length > 0) {
+        await upsertAppsBatch([...enrichedApps.values()].filter(a => !knownBefore.has(a.appId)));
+      }
+
       const candidates = apps.filter(isGemCandidate);
 
       for (const app of candidates) {
         if (crawlState.budgetUsed >= budget) break;
+        if (knownBefore.has(app.appId)) continue;
         if (await isAlreadyCrawledGem(app.appId)) continue;
         if (await isDismissed(app.appId)) continue;
+
+        const scoredApp = enrichedApps.get(app.appId) || app;
 
         let devAppCount;
         if (checkedDevs.has(app.developerId)) {
@@ -121,10 +158,10 @@ export async function runCrawl({ budget = 200, threshold = 40 } = {}) {
 
         if (devAppCount < 0 || devAppCount > 15) continue;
 
-        const gem = calculateGemScore(app, devAppCount);
+        const gem = calculateGemScore(scoredApp, devAppCount);
         if (gem.total >= threshold) {
           await saveCrawledGem({
-            ...app,
+            ...scoredApp,
             gemScore: gem.total,
             gemBreakdown: gem.breakdown,
             gemReason: gem.reason,

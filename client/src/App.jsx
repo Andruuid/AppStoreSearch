@@ -8,6 +8,7 @@ import OpportunitiesPage from './pages/OpportunitiesPage';
 import AppDetailPage from './pages/AppDetailPage';
 import GemFinderPage from './pages/GemFinderPage';
 import GemCrawlerPage from './pages/GemCrawlerPage';
+import CataloguePage from './pages/CataloguePage';
 import FavoritesPage from './pages/FavoritesPage';
 
 const theme = createTheme({
@@ -48,6 +49,7 @@ export default function App() {
             <Route path="/favorites" element={<FavoritesPage />} />
             <Route path="/gems" element={<GemFinderPage />} />
             <Route path="/crawler" element={<GemCrawlerPage />} />
+            <Route path="/catalogue" element={<CataloguePage />} />
             <Route path="/app/:appId" element={<AppDetailPage />} />
           </Route>
         </Routes>
