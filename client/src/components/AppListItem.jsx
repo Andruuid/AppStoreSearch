@@ -2,7 +2,7 @@ import {
   Card, CardActionArea, CardContent, Typography, Box, Chip, Rating, Avatar,
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import FavoriteButton from './FavoriteButton';
 
 function formatNumber(num) {
@@ -14,11 +14,16 @@ function formatNumber(num) {
 }
 
 export default function AppListItem({ app }) {
-  const navigate = useNavigate();
+  const appId = app.appId || app.app_id;
+  const detailPath = `/app/${encodeURIComponent(appId)}`;
 
   return (
     <Card variant="outlined">
-      <CardActionArea onClick={() => navigate(`/app/${encodeURIComponent(app.appId)}`)}>
+      <CardActionArea
+        component={RouterLink}
+        to={detailPath}
+        sx={{ textDecoration: 'none', color: 'inherit' }}
+      >
         <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 1.5 }}>
           <Avatar src={app.icon} variant="rounded" sx={{ width: 44, height: 44 }} />
 

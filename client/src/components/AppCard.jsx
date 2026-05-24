@@ -3,7 +3,7 @@ import {
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import FavoriteButton from './FavoriteButton';
 import HideButton from './HideButton';
 
@@ -16,14 +16,16 @@ function formatNumber(num) {
 }
 
 export default function AppCard({ app, hidden = false, onHide, onUnhide }) {
-  const navigate = useNavigate();
   const showActions = onHide || onUnhide;
+  const appId = app.appId || app.app_id;
+  const detailPath = `/app/${encodeURIComponent(appId)}`;
 
   return (
     <Card variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardActionArea
-        onClick={() => navigate(`/app/${encodeURIComponent(app.appId)}`)}
-        sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}
+        component={RouterLink}
+        to={detailPath}
+        sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch', textDecoration: 'none', color: 'inherit' }}
       >
         <CardContent sx={{ flex: 1 }}>
           <Box sx={{ display: 'flex', gap: 1.5, mb: 1.5 }}>

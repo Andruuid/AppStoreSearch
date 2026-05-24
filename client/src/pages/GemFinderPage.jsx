@@ -5,7 +5,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import DiamondIcon from '@mui/icons-material/Diamond';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import { getGems, getCategories } from '../services/api';
 import { useAppContext } from '../context/AppContext';
 import FavoriteButton from '../components/FavoriteButton';
@@ -53,8 +53,8 @@ function getDateValue(app) {
 }
 
 function GemCard({ app }) {
-  const navigate = useNavigate();
   const b = app.gemBreakdown || {};
+  const detailPath = `/app/${encodeURIComponent(app.appId)}`;
 
   return (
     <Card
@@ -68,8 +68,9 @@ function GemCard({ app }) {
       }}
     >
       <CardActionArea
-        onClick={() => navigate(`/app/${encodeURIComponent(app.appId)}`)}
-        sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}
+        component={RouterLink}
+        to={detailPath}
+        sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch', textDecoration: 'none', color: 'inherit' }}
       >
         <CardContent sx={{ flex: 1 }}>
           <Box sx={{ display: 'flex', gap: 1.5, mb: 1.5 }}>

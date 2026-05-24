@@ -1,4 +1,7 @@
-import { searchApps, getDeveloperApps, getKeywordsForCategory, getAppDetail } from './playScraper.js';
+import {
+  searchApps, getDeveloperApps, getKeywordsForCategory, getAppDetail,
+  listApps, COLLECTIONS, CATEGORIES,
+} from './playScraper.js';
 import { calculateGemScore, isGemCandidate, NICHE_CATEGORIES } from './gemScoring.js';
 import {
   saveCrawledGem, getCrawledGems, getCrawledGemCount, isDismissed,
@@ -7,6 +10,15 @@ import {
   upsertAppsBatch, recordAppDiscoveriesBatch, getKnownAppIds,
   getCatalogueStats,
 } from '../db/queries.js';
+
+const SEARCH_RESULTS_PER_QUERY = 50;
+const CHART_RESULTS_PER_QUERY = 100;
+
+const CHART_COLLECTIONS = [
+  { id: 'TOP_FREE', collection: COLLECTIONS.TOP_FREE, label: 'top free chart' },
+  { id: 'TOP_PAID', collection: COLLECTIONS.TOP_PAID, label: 'top paid chart' },
+  { id: 'GROSSING', collection: COLLECTIONS.GROSSING, label: 'top grossing chart' },
+];
 
 let crawlState = {
   running: false,
@@ -22,10 +34,32 @@ function buildFullQueue() {
   for (const cat of NICHE_CATEGORIES) {
     const keywords = getKeywordsForCategory(cat);
     for (const kw of keywords) {
-      queue.push({ category: cat, keyword: kw, key: `${cat}:${kw}` });
+      queue.push({ category: cat, keyword: kw, source: 'search', key: `${cat}:${kw}` });
+    }
+    for (const { id, collection, label } of CHART_COLLECTIONS) {
+      queue.push({
+        category: cat,
+        keyword: label,
+        source: 'chart',
+        collection,
+        key: `${cat}:chart:${id}`,
+      });
     }
   }
   return queue;
+}
+
+async function fetchAppsForQueueItem(item) {
+  if (item.source === 'chart') {
+    const category = CATEGORIES[item.category] ?? item.category;
+    return listApps({
+      category,
+      collection: item.collection,
+      num: CHART_RESULTS_PER_QUERY,
+      fullDetail: false,
+    });
+  }
+  return searchApps({ term: item.keyword, num: SEARCH_RESULTS_PER_QUERY, fullDetail: true });
 }
 
 export function getTotalKeywordCount() {
@@ -90,7 +124,7 @@ export async function runCrawl({ budget = 200, threshold = 40 } = {}) {
 
       let apps = [];
       try {
-        apps = await searchApps({ term: item.keyword, num: 15, fullDetail: true });
+        apps = await fetchAppsForQueueItem(item);
         crawlState.budgetUsed++;
       } catch {
         await markCrawlKeyDone(item.key, item.category, item.keyword);

@@ -9,7 +9,6 @@ import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import DiamondIcon from '@mui/icons-material/Diamond';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { useNavigate } from 'react-router-dom';
 import { Link as RouterLink } from 'react-router-dom';
 import { startCrawl, getCrawlStatus, getCrawledGems, dismissCrawledApp, resetCrawl } from '../services/api';
 import { useAppContext } from '../context/AppContext';
@@ -34,15 +33,16 @@ function formatNumber(num) {
 }
 
 function CrawlGemCard({ gem, onDismiss }) {
-  const navigate = useNavigate();
   const appId = gem.app_id;
+  const detailPath = `/app/${encodeURIComponent(appId)}`;
   const breakdown = typeof gem.gem_breakdown === 'object' ? gem.gem_breakdown : {};
 
   return (
     <Card variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardActionArea
-        onClick={() => navigate(`/app/${encodeURIComponent(appId)}`)}
-        sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}
+        component={RouterLink}
+        to={detailPath}
+        sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch', textDecoration: 'none', color: 'inherit' }}
       >
         <CardContent sx={{ flex: 1 }}>
           <Box sx={{ display: 'flex', gap: 1.5, mb: 1.5 }}>
@@ -210,14 +210,14 @@ export default function GemCrawlerPage() {
 
   const isRunning = status?.running;
   const isPaused = !isRunning && status?.stoppedReason === 'budget_exhausted';
-  const isComplete = !isRunning && status?.stoppedReason === 'complete';
+  const isComplete = !isRunning && (status?.isComplete ?? status?.stoppedReason === 'complete');
 
   const statusLabel = isRunning
     ? `Crawling: ${status.currentKeyword || '...'}  (${status.budgetUsed}/${status.budgetTotal} requests)`
     : isPaused
       ? `Paused -- budget exhausted (${status.budgetUsed}/${status.budgetTotal} requests used). Click "Continue" to resume.`
       : isComplete
-        ? 'Crawl complete! All keywords searched.'
+        ? 'Crawl complete! All search tasks finished.'
         : status?.stoppedReason?.startsWith('error')
           ? `Stopped: ${status.stoppedReason}`
           : 'Ready to crawl';
@@ -229,9 +229,10 @@ export default function GemCrawlerPage() {
         <Typography variant="h4" fontWeight={700}>Gem Crawler</Typography>
       </Box>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 640 }}>
-        Systematically search every niche category for replicable apps. The crawler runs in the
-        background with a request budget, pausing when the budget runs out. Come back later and
-        click "Continue" to keep discovering.
+        Systematically search every niche category for replicable apps — via keyword searches
+        and category charts (top free, paid, grossing). The crawler runs in the background with
+        a request budget, pausing when the budget runs out. Come back later and click
+        "Continue" to keep discovering.
       </Typography>
 
       {/* Controls */}
@@ -262,7 +263,7 @@ export default function GemCrawlerPage() {
               value={budget}
               onChange={(_, v) => setBudget(v)}
               min={50}
-              max={500}
+              max={1000}
               step={50}
               valueLabelDisplay="auto"
               disabled={isRunning}
@@ -326,7 +327,7 @@ export default function GemCrawlerPage() {
         <Box sx={{ mb: 1 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
             <Typography variant="body2" fontWeight={500}>
-              {status?.completedKeywords ?? 0} / {status?.totalKeywords ?? '...'} keywords crawled
+              {status?.completedKeywords ?? 0} / {status?.totalKeywords ?? '...'} search tasks completed
             </Typography>
             <Typography variant="body2" fontWeight={500}>{pct}%</Typography>
           </Box>
