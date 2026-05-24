@@ -231,6 +231,7 @@ export async function getCatalogueStats() {
       (SELECT COUNT(*) FROM apps) AS total_apps,
       (SELECT COUNT(DISTINCT category) FROM apps WHERE category IS NOT NULL) AS categories,
       (SELECT COUNT(*) FROM apps WHERE gem_score IS NOT NULL) AS gems,
+      (SELECT COUNT(*) FROM dismissed_apps) AS hidden,
       (SELECT MAX(discovered_at) FROM app_discoveries) AS latest_discovery
   `);
   stmt.step();
@@ -333,6 +334,11 @@ export async function queryApps(filters = {}) {
   }
   if (filters.gemsOnly) {
     conditions.push('a.gem_score IS NOT NULL');
+  }
+  if (filters.hiddenOnly) {
+    conditions.push('a.app_id IN (SELECT app_id FROM dismissed_apps)');
+  } else if (!filters.includeHidden) {
+    conditions.push('a.app_id NOT IN (SELECT app_id FROM dismissed_apps)');
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -486,6 +492,18 @@ export async function isDismissed(appId) {
 export async function dismissApp(appId) {
   const db = await getDb();
   db.run(`INSERT OR IGNORE INTO dismissed_apps (app_id, dismissed_at) VALUES (?, datetime('now'))`, [appId]);
+  saveDb();
+}
+
+export async function undismissApp(appId) {
+  const db = await getDb();
+  db.run('DELETE FROM dismissed_apps WHERE app_id = ?', [appId]);
+  saveDb();
+}
+
+export async function undismissAllApps() {
+  const db = await getDb();
+  db.run('DELETE FROM dismissed_apps');
   saveDb();
 }
 

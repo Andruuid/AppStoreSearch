@@ -6,7 +6,10 @@ import {
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import DiamondIcon from '@mui/icons-material/Diamond';
 import AppCard from '../components/AppCard';
-import { getCatalogue, getCatalogueStats, getCatalogueCategories, getCatalogueKeywords } from '../services/api';
+import {
+  getCatalogue, getCatalogueStats, getCatalogueCategories, getCatalogueKeywords,
+  hideCatalogueApp, unhideCatalogueApp, unhideAllCatalogueApps,
+} from '../services/api';
 
 const SORT_OPTIONS = [
   { value: 'date', label: 'Recently seen' },
@@ -32,6 +35,7 @@ export default function CataloguePage() {
   const [category, setCategory] = useState('');
   const [keyword, setKeyword] = useState('');
   const [gemsOnly, setGemsOnly] = useState(false);
+  const [showHidden, setShowHidden] = useState(false);
   const [sortBy, setSortBy] = useState('date');
   const [sortDir, setSortDir] = useState('desc');
   const [offset, setOffset] = useState(0);
@@ -66,6 +70,7 @@ export default function CataloguePage() {
         category: category || undefined,
         keyword: keyword || undefined,
         gemsOnly: gemsOnly || undefined,
+        hiddenOnly: showHidden || undefined,
         sortBy,
         sortDir,
         limit: PAGE_SIZE,
@@ -86,7 +91,7 @@ export default function CataloguePage() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [search, category, keyword, gemsOnly, sortBy, sortDir, offset]);
+  }, [search, category, keyword, gemsOnly, showHidden, sortBy, sortDir, offset]);
 
   useEffect(() => {
     loadStats();
@@ -95,11 +100,38 @@ export default function CataloguePage() {
   useEffect(() => {
     loadCatalogue(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, keyword, gemsOnly, sortBy, sortDir]);
+  }, [category, keyword, gemsOnly, showHidden, sortBy, sortDir]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     loadCatalogue(true);
+  };
+
+  const handleHide = async (appId) => {
+    try {
+      await hideCatalogueApp(appId);
+      setItems(prev => prev.filter(a => a.appId !== appId));
+      setTotal(prev => Math.max(0, prev - 1));
+      setStats(prev => prev ? { ...prev, hidden: (prev.hidden || 0) + 1 } : prev);
+    } catch { /* ignore */ }
+  };
+
+  const handleUnhide = async (appId) => {
+    try {
+      await unhideCatalogueApp(appId);
+      setItems(prev => prev.filter(a => a.appId !== appId));
+      setTotal(prev => Math.max(0, prev - 1));
+      setStats(prev => prev ? { ...prev, hidden: Math.max(0, (prev.hidden || 0) - 1) } : prev);
+    } catch { /* ignore */ }
+  };
+
+  const handleUnhideAll = async () => {
+    try {
+      await unhideAllCatalogueApps();
+      setShowHidden(false);
+      setStats(prev => prev ? { ...prev, hidden: 0 } : prev);
+      loadCatalogue(true);
+    } catch { /* ignore */ }
   };
 
   const hasMore = items.length < total;
@@ -125,6 +157,9 @@ export default function CataloguePage() {
             color="warning"
             variant="outlined"
           />
+          {(stats.hidden || 0) > 0 && (
+            <Chip label={`${stats.hidden} hidden`} variant="outlined" color="default" />
+          )}
         </Card>
       )}
 
@@ -180,6 +215,17 @@ export default function CataloguePage() {
             label="Gems only"
           />
 
+          <FormControlLabel
+            control={<Switch checked={showHidden} onChange={(e) => setShowHidden(e.target.checked)} />}
+            label="Show hidden"
+          />
+
+          {(stats?.hidden || 0) > 0 && (
+            <Button variant="outlined" color="secondary" onClick={handleUnhideAll}>
+              Unhide all
+            </Button>
+          )}
+
           <Button type="submit" variant="contained" disableElevation>
             Search
           </Button>
@@ -194,12 +240,16 @@ export default function CataloguePage() {
         </Box>
       ) : items.length === 0 ? (
         <Alert severity="info">
-          No apps in the catalogue yet. Run the Gem Crawler to start building your library.
+          {showHidden
+            ? 'No hidden apps. Use the hide button on any app to remove it from the catalogue.'
+            : 'No apps in the catalogue yet. Run the Gem Crawler to start building your library.'}
         </Alert>
       ) : (
         <>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Showing {items.length} of {total} apps
+            {showHidden
+              ? `Showing ${items.length} of ${total} hidden apps`
+              : `Showing ${items.length} of ${total} apps`}
           </Typography>
 
           <Grid container spacing={2}>
@@ -212,6 +262,9 @@ export default function CataloguePage() {
                       ? `Gem score ${app.gemScore}`
                       : undefined,
                   }}
+                  hidden={showHidden}
+                  onHide={showHidden ? undefined : () => handleHide(app.appId)}
+                  onUnhide={showHidden ? () => handleUnhide(app.appId) : undefined}
                 />
               </Grid>
             ))}

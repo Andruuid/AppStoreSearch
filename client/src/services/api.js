@@ -99,6 +99,21 @@ export async function getCatalogueKeywords() {
   return data;
 }
 
+export async function hideCatalogueApp(appId) {
+  const { data } = await api.post(`/catalogue/hide/${encodeURIComponent(appId)}`);
+  return data;
+}
+
+export async function unhideCatalogueApp(appId) {
+  const { data } = await api.post(`/catalogue/unhide/${encodeURIComponent(appId)}`);
+  return data;
+}
+
+export async function unhideAllCatalogueApps() {
+  const { data } = await api.post('/catalogue/unhide-all');
+  return data;
+}
+
 export async function getFavorites() {
   const { data } = await api.get('/favorites');
   return data;

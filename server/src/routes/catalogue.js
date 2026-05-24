@@ -5,6 +5,9 @@ import {
   getCatalogueCategories,
   getDiscoveryKeywords,
   catalogueRowToCamel,
+  dismissApp,
+  undismissApp,
+  undismissAllApps,
 } from '../db/queries.js';
 
 const router = Router();
@@ -14,6 +17,7 @@ router.get('/catalogue', async (req, res) => {
     const {
       category, search, keyword, gemsOnly,
       sortBy, sortDir, limit, offset,
+      includeHidden, hiddenOnly,
     } = req.query || {};
 
     const result = await queryApps({
@@ -21,6 +25,8 @@ router.get('/catalogue', async (req, res) => {
       search: search || undefined,
       keyword: keyword || undefined,
       gemsOnly: gemsOnly === 'true' || gemsOnly === '1',
+      includeHidden: includeHidden === 'true' || includeHidden === '1',
+      hiddenOnly: hiddenOnly === 'true' || hiddenOnly === '1',
       sortBy: sortBy || 'date',
       sortDir: sortDir || 'desc',
       limit: parseInt(limit) || 50,
@@ -64,6 +70,33 @@ router.get('/catalogue/keywords', async (_req, res) => {
     res.json(keywords);
   } catch (err) {
     res.status(500).json({ error: 'Failed to get keywords', message: err.message });
+  }
+});
+
+router.post('/catalogue/hide/:appId', async (req, res) => {
+  try {
+    await dismissApp(req.params.appId);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to hide app', message: err.message });
+  }
+});
+
+router.post('/catalogue/unhide/:appId', async (req, res) => {
+  try {
+    await undismissApp(req.params.appId);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to unhide app', message: err.message });
+  }
+});
+
+router.post('/catalogue/unhide-all', async (_req, res) => {
+  try {
+    await undismissAllApps();
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to unhide apps', message: err.message });
   }
 });
 

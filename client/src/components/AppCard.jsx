@@ -5,6 +5,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { useNavigate } from 'react-router-dom';
 import FavoriteButton from './FavoriteButton';
+import HideButton from './HideButton';
 
 function formatNumber(num) {
   if (!num) return '0';
@@ -14,8 +15,9 @@ function formatNumber(num) {
   return num.toString();
 }
 
-export default function AppCard({ app }) {
+export default function AppCard({ app, hidden = false, onHide, onUnhide }) {
   const navigate = useNavigate();
+  const showActions = onHide || onUnhide;
 
   return (
     <Card variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -30,7 +32,7 @@ export default function AppCard({ app }) {
               <Typography variant="subtitle1" fontWeight={600} noWrap>{app.title}</Typography>
               <Typography variant="body2" color="text.secondary" noWrap>{app.developer}</Typography>
             </Box>
-            <FavoriteButton app={app} />
+            {!showActions && <FavoriteButton app={app} />}
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -58,6 +60,13 @@ export default function AppCard({ app }) {
           )}
         </CardContent>
       </CardActionArea>
+
+      {showActions && (
+        <Box sx={{ px: 1, pb: 1, display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
+          <FavoriteButton app={app} />
+          <HideButton hidden={hidden} onHide={onHide} onUnhide={onUnhide} />
+        </Box>
+      )}
     </Card>
   );
 }
