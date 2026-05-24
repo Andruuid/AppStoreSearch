@@ -26,6 +26,7 @@ export async function getDb() {
   }
 
   initSchema(db);
+  saveDb();
   return db;
 }
 
@@ -178,6 +179,20 @@ function initSchema(db) {
       discovered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (app_id, category, keyword)
     )
+  `);
+
+  syncCrawledGemsToApps(db);
+}
+
+function syncCrawledGemsToApps(db) {
+  db.run(`
+    UPDATE apps SET
+      gem_score = (SELECT cg.gem_score FROM crawled_gems cg WHERE cg.app_id = apps.app_id),
+      gem_breakdown = (SELECT cg.gem_breakdown FROM crawled_gems cg WHERE cg.app_id = apps.app_id),
+      gem_reason = (SELECT cg.gem_reason FROM crawled_gems cg WHERE cg.app_id = apps.app_id),
+      developer_app_count = (SELECT cg.developer_app_count FROM crawled_gems cg WHERE cg.app_id = apps.app_id)
+    WHERE app_id IN (SELECT app_id FROM crawled_gems)
+      AND gem_score IS NULL
   `);
 }
 
