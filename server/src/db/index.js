@@ -181,6 +181,67 @@ function initSchema(db) {
     )
   `);
 
+  db.run(`
+    CREATE TABLE IF NOT EXISTS saas_products (
+      id TEXT PRIMARY KEY,
+      name TEXT,
+      url TEXT,
+      url_key TEXT UNIQUE,
+      tagline TEXT,
+      description TEXT,
+      logo_url TEXT,
+      category TEXT,
+      tags TEXT,
+      pricing_model TEXT DEFAULT 'unknown',
+      pricing_hint TEXT,
+      source TEXT DEFAULT 'seed',
+      product_hunt_id TEXT,
+      ph_upvotes INTEGER,
+      ph_comments INTEGER,
+      ph_launched_at TEXT,
+      metrics TEXT,
+      opportunity_score INTEGER,
+      opportunity_breakdown TEXT,
+      opportunity_reason TEXT,
+      enrichment_status TEXT DEFAULT 'pending',
+      enrichment_error TEXT,
+      first_seen_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_enriched_at DATETIME
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS saas_favorites (
+      saas_id TEXT PRIMARY KEY,
+      name TEXT,
+      url TEXT,
+      logo_url TEXT,
+      category TEXT,
+      tagline TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS saas_dismissed (
+      saas_id TEXT PRIMARY KEY,
+      dismissed_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS saas_sync_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sync_type TEXT,
+      status TEXT,
+      items_added INTEGER DEFAULT 0,
+      items_updated INTEGER DEFAULT 0,
+      error TEXT,
+      started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      completed_at DATETIME
+    )
+  `);
+
   syncCrawledGemsToApps(db);
 }
 

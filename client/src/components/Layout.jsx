@@ -11,6 +11,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import DiamondIcon from '@mui/icons-material/Diamond';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
+import CloudIcon from '@mui/icons-material/Cloud';
 import StarIcon from '@mui/icons-material/Star';
 
 const DRAWER_WIDTH = 240;
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { label: 'Gem Finder', path: '/gems', icon: <DiamondIcon /> },
   { label: 'Gem Crawler', path: '/crawler', icon: <ManageSearchIcon /> },
   { label: 'Catalogue', path: '/catalogue', icon: <LibraryBooksIcon /> },
+  { label: 'SaaS Finder', path: '/saas', icon: <CloudIcon /> },
   { label: 'Search', path: '/search', icon: <SearchIcon /> },
   { label: 'Opportunities', path: '/opportunities', icon: <TrendingUpIcon /> },
   { label: 'Favorites', path: '/favorites', icon: <StarIcon /> },

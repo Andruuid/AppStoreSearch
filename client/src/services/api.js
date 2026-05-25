@@ -133,3 +133,80 @@ export async function removeFavorite(appId) {
   const { data } = await api.delete(`/favorites/${encodeURIComponent(appId)}`);
   return data;
 }
+
+// --- SaaS Finder ---
+
+export async function getSaasProducts(params) {
+  const { data } = await api.get('/saas', { params });
+  return data;
+}
+
+export async function getSaasProduct(id) {
+  const { data } = await api.get(`/saas/${encodeURIComponent(id)}`);
+  return data;
+}
+
+export async function getSaasStats() {
+  const { data } = await api.get('/saas/stats');
+  return data;
+}
+
+export async function getSaasCategories() {
+  const { data } = await api.get('/saas/categories');
+  return data;
+}
+
+export async function getSaasSyncStatus() {
+  const { data } = await api.get('/saas/sync/status');
+  return data;
+}
+
+export async function addSaasProduct(body) {
+  const { data } = await api.post('/saas', body);
+  return data;
+}
+
+export async function importSaasSeed() {
+  const { data } = await api.post('/saas/import-seed');
+  return data;
+}
+
+export async function syncProductHunt(body) {
+  const { data } = await api.post('/saas/sync/product-hunt', body);
+  return data;
+}
+
+export async function enrichSaasPending(body) {
+  const { data } = await api.post('/saas/enrich', body);
+  return data;
+}
+
+export async function enrichSaasProduct(id) {
+  const { data } = await api.post(`/saas/enrich/${encodeURIComponent(id)}`);
+  return data;
+}
+
+export async function dismissSaasProduct(id) {
+  const { data } = await api.post(`/saas/dismiss/${encodeURIComponent(id)}`);
+  return data;
+}
+
+export async function getSaasFavorites() {
+  const { data } = await api.get('/saas/favorites');
+  return data;
+}
+
+export async function getSaasFavoriteIds() {
+  const { data } = await api.get('/saas/favorites/ids');
+  return data;
+}
+
+export async function addSaasFavorite(product) {
+  const { data } = await api.post('/saas/favorites', product);
+  return data;
+}
+
+export async function removeSaasFavorite(id) {
+  const { data } = await api.delete(`/saas/favorites/${encodeURIComponent(id)}`);
+  return data;
+}

@@ -10,6 +10,8 @@ import GemFinderPage from './pages/GemFinderPage';
 import GemCrawlerPage from './pages/GemCrawlerPage';
 import CataloguePage from './pages/CataloguePage';
 import FavoritesPage from './pages/FavoritesPage';
+import SaaSFinderPage from './pages/SaaSFinderPage';
+import SaaSDetailPage from './pages/SaaSDetailPage';
 
 const theme = createTheme({
   palette: {
@@ -50,6 +52,8 @@ export default function App() {
             <Route path="/gems" element={<GemFinderPage />} />
             <Route path="/crawler" element={<GemCrawlerPage />} />
             <Route path="/catalogue" element={<CataloguePage />} />
+            <Route path="/saas" element={<SaaSFinderPage />} />
+            <Route path="/saas/:id" element={<SaaSDetailPage />} />
             <Route path="/app/:appId" element={<AppDetailPage />} />
           </Route>
         </Routes>
